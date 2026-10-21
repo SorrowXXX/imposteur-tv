@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<meta name="robots" content="noindex">
+	<meta name="theme-color" content="#000000">
+	<title>Imposteur</title>
+	<style>
+		:root {
+			--text: #f5f5f7;
+			--text-secondary: #8e8e93;
+			--color: #bf5af2;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			-webkit-tap-highlight-color: transparent;
+		}
+
+		html,
+		body {
+			height: 100%;
+			background: #000;
+		}
+
+		body {
+			display: flex;
+			flex-direction: column;
+			color: var(--text);
+			font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+			-webkit-font-smoothing: antialiased;
+			padding: max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+			-webkit-user-select: none;
+			user-select: none;
+		}
+
+		header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.who {
+			display: flex;
+			align-items: center;
+			font-size: 20px;
+			font-weight: 600;
+		}
+
+		.av {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 44px;
+			height: 44px;
+			margin-right: 12px;
+			border-radius: 50%;
+			background: var(--color);
+			color: #fff;
+			font-weight: 700;
+		}
+
+		.round {
+			padding: 6px 14px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.1);
+			font-size: 15px;
+			font-weight: 600;
+			color: var(--text-secondary);
+		}
+
+		main {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 24px 0;
+		}
+
+		.card {
+			position: relative;
+			width: 100%;
+			max-width: 420px;
+			min-height: 62vh;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 32px 24px;
+			border-radius: 32px;
+			background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+			box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+			text-align: center;
+			cursor: pointer;
+		}
+
+		.card::before {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 6px;
+			border-radius: 32px 32px 0 0;
+			background: var(--color);
+		}
+
+		.label {
+			font-size: 15px;
+			font-weight: 600;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			color: var(--text-secondary);
+		}
+
+		.word {
+			margin-top: 14px;
+			font-size: clamp(40px, 13vw, 64px);
+			font-weight: 800;
+			letter-spacing: -1.5px;
+			line-height: 1.05;
+			word-break: break-word;
+		}
+
+		.text {
+			margin-top: 18px;
+			font-size: 17px;
+			line-height: 1.45;
+			color: var(--text-secondary);
+		}
+
+		.tag {
+			display: inline-block;
+			margin-top: 18px;
+			padding: 8px 16px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.1);
+			font-size: 16px;
+			font-weight: 600;
+		}
+
+		.hidden-state .eye {
+			font-size: 56px;
+			line-height: 1;
+		}
+
+		.hidden-state .title {
+			margin-top: 18px;
+			font-size: 26px;
+			font-weight: 700;
+		}
+
+		footer {
+			text-align: center;
+			font-size: 14px;
+			color: var(--text-secondary);
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<div class="who"><div class="av" id="av">?</div><span id="player"></span></div>
+		<div class="round" id="round"></div>
+	</header>
+
+	<main>
+		<div class="card" id="card"></div>
+	</main>
+
+	<footer id="footer"></footer>
+
+	<script>
+		(function () {
+			// Mêmes couleurs que sur la TV
+			var COLORS = ['#ff453a', '#ff9f0a', '#d4a90a', '#30d158', '#32ade6', '#0a84ff', '#5e5ce6', '#bf5af2', '#ff375f', '#ac8e68',
+				'#1fb5ad', '#ff6482', '#7d7aff', '#2f9e44', '#e8590c', '#c2255c', '#5c7cfa', '#9c36b5', '#f76707', '#868e96'];
+
+			var TEXT = {
+				fr: {
+					player: 'Joueur', round: 'Manche', tapShow: 'Touche pour voir ton mot', tapHide: 'Touche la carte pour la cacher',
+					keepSecret: 'Cache bien ton écran.', yourWord: 'Ton mot',
+					civil: 'Certains joueurs ont un mot différent. Décris le tien sans le dire.',
+					undercover: 'Tu es undercover', undercoverText: 'Ton mot est différent de celui des civils. Fonds-toi dans la masse !',
+					mw: 'Mister White', mwText: 'Tu n\'as pas de mot. Écoute les autres et bluffe pour ne pas te faire repérer.',
+					hint: 'Indice', invalid: 'Scanne le QR code affiché sur la TV pour recevoir ton mot.'
+				},
+				en: {
+					player: 'Player', round: 'Round', tapShow: 'Tap to see your word', tapHide: 'Tap the card to hide it',
+					keepSecret: 'Keep your screen hidden.', yourWord: 'Your word',
+					civil: 'Some players have a different word. Describe yours without saying it.',
+					undercover: 'You are undercover', undercoverText: 'Your word is different from the civilians\'. Blend in!',
+					mw: 'Mister White', mwText: 'You have no word. Listen to the others and bluff so you don\'t get caught.',
+					hint: 'Hint', invalid: 'Scan the QR code shown on the TV to get your word.'
+				},
+				es: {
+					player: 'Jugador', round: 'Ronda', tapShow: 'Toca para ver tu palabra', tapHide: 'Toca la carta para ocultarla',
+					keepSecret: 'Oculta bien tu pantalla.', yourWord: 'Tu palabra',
+					civil: 'Algunos jugadores tienen otra palabra. Describe la tuya sin decirla.',
+					undercover: 'Eres undercover', undercoverText: 'Tu palabra es distinta a la de los civiles. ¡Pasa desapercibido!',
+					mw: 'Mister White', mwText: 'No tienes palabra. Escucha a los demás y farolea para que no te descubran.',
+					hint: 'Pista', invalid: 'Escanea el código QR de la TV para recibir tu palabra.'
+				}
+			};
+
+			var card = document.getElementById('card');
+			var data = null;
+			var t = TEXT.fr;
+			var revealed = false;
+
+			function decode(hash) {
+				try {
+					var raw = hash.replace(/^#/, '').replace(/-/g, '+').replace(/_/g, '/');
+					while (raw.length % 4) raw += '=';
+					return JSON.parse(decodeURIComponent(escape(atob(raw))));
+				} catch (e) {
+					return null;
+				}
+			}
+
+			function escapeHtml(text) {
+				return String(text).replace(/[&<>"']/g, function (c) {
+					return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c];
+				});
+			}
+
+			function render() {
+				if (!data) {
+					card.innerHTML = '<div class="text" style="margin-top:0">' + TEXT.fr.invalid + '</div>';
+					return;
+				}
+				if (!revealed) {
+					card.innerHTML = '<div class="hidden-state"><div class="eye">👁</div><div class="title">' + t.tapShow + '</div>' +
+						'<div class="text">' + t.keepSecret + '</div></div>';
+					document.getElementById('footer').textContent = '';
+					return;
+				}
+				var html;
+				if (data.r === 'w') {
+					html = '<div class="label">' + t.round + ' ' + data.m + '</div><div class="word">' + t.mw + '</div>' +
+						'<div class="text">' + t.mwText + '</div>' +
+						(data.k ? '<div class="tag">' + t.hint + ' : ' + escapeHtml(data.k) + '</div>' : '');
+				} else if (data.r === 'u') {
+					html = '<div class="label">' + t.undercover + '</div><div class="word">' + escapeHtml(data.w) + '</div>' +
+						'<div class="text">' + t.undercoverText + '</div>';
+				} else {
+					html = '<div class="label">' + t.yourWord + '</div><div class="word">' + escapeHtml(data.w) + '</div>' +
+						'<div class="text">' + t.civil + '</div>';
+				}
+				card.innerHTML = html;
+				document.getElementById('footer').textContent = t.tapHide;
+			}
+
+			function load() {
+				data = decode(location.hash);
+				t = (data && TEXT[data.l]) || TEXT.fr;
+				revealed = false;
+				document.documentElement.lang = (data && data.l) || 'fr';
+				var color = data ? COLORS[data.c % COLORS.length] : '#8e8e93';
+				document.documentElement.style.setProperty('--color', color);
+				document.getElementById('av').textContent = data ? data.p : '?';
+				document.getElementById('player').textContent = data ? t.player + ' ' + data.p : '';
+				document.getElementById('round').textContent = data ? t.round + ' ' + data.m : '';
+				document.getElementById('round').style.display = data ? '' : 'none';
+				render();
+			}
+
+			card.addEventListener('click', function () {
+				if (!data) return;
+				revealed = !revealed;
+				render();
+			});
+			window.addEventListener('hashchange', load);
+			load();
+		})();
+	</script>
+</body>
+
+</html>
