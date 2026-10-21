@@ -242,6 +242,17 @@
 				}
 			}
 
+			var lastSendAt = 0;
+
+			function sendPosition() {
+				if (!conn || !conn.open || Math.abs(y - lastSent) <= 0.002) return;
+				try {
+					conn.send({ t: 'y', y: Math.round(y * 1000) / 1000 });
+					lastSent = y;
+					lastSendAt = Date.now();
+				} catch (e) { }
+			}
+
 			// Position du doigt → position de la raquette (0 en haut, 1 en bas)
 			function track(e) {
 				e.preventDefault();
@@ -250,20 +261,16 @@
 				var rect = pad.getBoundingClientRect();
 				y = Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height));
 				paddle.style.top = (9 + y * 82) + '%';
+				if (Date.now() - lastSendAt >= 15) sendPosition();
 			}
 
 			pad.addEventListener('touchstart', track, { passive: false });
 			pad.addEventListener('touchmove', track, { passive: false });
 			pad.addEventListener('mousemove', function (e) { if (e.buttons) track(e); });
 
-			// Envoi à la TV au rythme de l'écran, seulement quand la position change
+			// Rattrape la dernière position si un mouvement a été ignoré par la limite de 15 ms
 			(function loop() {
-				if (conn && conn.open && Math.abs(y - lastSent) > 0.002) {
-					try {
-						conn.send({ t: 'y', y: Math.round(y * 1000) / 1000 });
-						lastSent = y;
-					} catch (e) { }
-				}
+				sendPosition();
 				requestAnimationFrame(loop);
 			})();
 
