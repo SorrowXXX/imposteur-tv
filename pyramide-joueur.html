@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+	<meta name="robots" content="noindex">
+	<meta name="theme-color" content="#000000">
+	<title>Pyramide · Joueur</title>
+	<style>
+		:root {
+			--text: #f5f5f7;
+			--text-secondary: #8e8e93;
+			--c: #ff9f0a;
+			--accent: #ff9f0a;
+			--bad: #ff453a;
+			--good: #30d158;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			-webkit-tap-highlight-color: transparent;
+		}
+
+		html,
+		body {
+			min-height: 100%;
+			background: #000;
+		}
+
+		body {
+			color: var(--text);
+			font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+			-webkit-font-smoothing: antialiased;
+			padding: max(18px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+			-webkit-user-select: none;
+			user-select: none;
+		}
+
+		header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.who {
+			display: flex;
+			align-items: center;
+			font-size: 19px;
+			font-weight: 700;
+		}
+
+		.dot {
+			width: 14px;
+			height: 14px;
+			margin-right: 10px;
+			border-radius: 50%;
+			background: var(--c);
+			box-shadow: 0 0 12px var(--c);
+		}
+
+		.drinks {
+			padding: 6px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.1);
+			font-size: 14px;
+			font-weight: 700;
+		}
+
+		section {
+			display: none;
+			margin-top: 22px;
+		}
+
+		section.is-on {
+			display: block;
+		}
+
+		h1 {
+			font-size: 30px;
+			font-weight: 800;
+			letter-spacing: -0.5px;
+		}
+
+		.muted {
+			margin-top: 8px;
+			font-size: 16px;
+			line-height: 1.45;
+			color: var(--text-secondary);
+		}
+
+		input {
+			width: 100%;
+			margin-top: 20px;
+			padding: 16px 18px;
+			border: 0;
+			border-radius: 16px;
+			outline: none;
+			background: rgba(255, 255, 255, 0.1);
+			color: var(--text);
+			font: inherit;
+			font-size: 20px;
+			font-weight: 600;
+		}
+
+		button {
+			display: block;
+			width: 100%;
+			margin-top: 14px;
+			padding: 17px;
+			border: 0;
+			border-radius: 16px;
+			background: var(--text);
+			color: #000;
+			font: inherit;
+			font-size: 18px;
+			font-weight: 700;
+		}
+
+		button:disabled {
+			opacity: 0.35;
+		}
+
+		button.ghost {
+			background: rgba(255, 255, 255, 0.1);
+			color: var(--text);
+		}
+
+		button.danger {
+			background: var(--bad);
+			color: #fff;
+		}
+
+		.list {
+			margin-top: 16px;
+		}
+
+		.list div {
+			display: flex;
+			align-items: center;
+			margin-bottom: 8px;
+			padding: 14px 16px;
+			border-radius: 14px;
+			background: rgba(255, 255, 255, 0.07);
+			font-size: 17px;
+			font-weight: 600;
+		}
+
+		.list .dot {
+			width: 11px;
+			height: 11px;
+		}
+
+		/* Cartes */
+		.hand {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			margin-top: 14px;
+		}
+
+		.card {
+			position: relative;
+			width: 62px;
+			height: 88px;
+			margin: 5px;
+			border-radius: 9px;
+			background: linear-gradient(135deg, #3a1d5c 0%, #6b2a6b 50%, #a3413a 100%);
+			box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+		}
+
+		.card.is-face {
+			background: #f8f7f4;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+		}
+
+		.card .rank {
+			position: absolute;
+			top: 6px;
+			left: 7px;
+			font-size: 19px;
+			font-weight: 800;
+			line-height: 1;
+		}
+
+		.card svg {
+			position: absolute;
+			left: 50%;
+			top: 58%;
+			width: 46%;
+			transform: translate(-50%, -50%);
+		}
+
+		.card.big {
+			width: 84px;
+			height: 118px;
+			margin: 0 16px 0 0;
+			flex-shrink: 0;
+		}
+
+		.card.big .rank {
+			font-size: 26px;
+		}
+
+		.red { color: #d70015; fill: #d70015; }
+		.black { color: #1d1d1f; fill: #1d1d1f; }
+
+		.panel {
+			margin-top: 18px;
+			padding: 16px;
+			border-radius: 20px;
+			background: rgba(255, 255, 255, 0.06);
+		}
+
+		.current {
+			display: flex;
+			align-items: center;
+		}
+
+		.current .amount {
+			font-size: 30px;
+			font-weight: 800;
+			color: var(--accent);
+		}
+
+		.memo {
+			margin-top: 8px;
+			text-align: center;
+			font-size: 15px;
+			font-weight: 700;
+			color: var(--accent);
+		}
+
+		/* Fenêtres */
+		.sheet {
+			position: fixed;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			display: none;
+			max-height: 85%;
+			overflow-y: auto;
+			padding: 22px 18px max(24px, env(safe-area-inset-bottom));
+			border-radius: 26px 26px 0 0;
+			background: #1c1c1e;
+			box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.6);
+		}
+
+		.sheet.is-on {
+			display: block;
+		}
+
+		.sheet .target {
+			display: flex;
+			align-items: center;
+			text-align: left;
+			background: rgba(255, 255, 255, 0.08);
+			color: var(--text);
+		}
+
+		.sheet .target .dot {
+			width: 12px;
+			height: 12px;
+		}
+
+		.toast {
+			position: fixed;
+			left: 18px;
+			right: 18px;
+			top: max(18px, env(safe-area-inset-top));
+			display: none;
+			padding: 16px 18px;
+			border-radius: 16px;
+			background: #2c2c2e;
+			font-size: 16px;
+			font-weight: 700;
+			line-height: 1.4;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+		}
+
+		.toast.is-on {
+			display: block;
+		}
+
+		.toast.bad {
+			background: #5c1a17;
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<div class="who"><div class="dot"></div><span id="me">Pyramide</span></div>
+		<div class="drinks" id="drinks" style="display:none"></div>
+	</header>
+
+	<section id="join">
+		<h1>Rejoindre la Pyramide</h1>
+		<p class="muted">Choisis le pseudo affiché sur la TV.</p>
+		<input id="name" maxlength="14" placeholder="Ton pseudo" autocomplete="off" autocapitalize="words">
+		<button id="joinBtn">Rejoindre</button>
+		<p class="muted" id="joinStatus"></p>
+	</section>
+
+	<section id="wait">
+		<h1>Tu es dans la partie</h1>
+		<p class="muted">Attends que la partie soit lancée depuis la TV.</p>
+		<div class="list" id="players"></div>
+	</section>
+
+	<section id="game">
+		<div class="panel" id="current"></div>
+		<div class="panel">
+			<div style="font-size:15px;font-weight:700;color:var(--text-secondary)">TA MAIN</div>
+			<div class="hand" id="hand"></div>
+			<div class="memo" id="memo"></div>
+		</div>
+		<button id="giveBtn" disabled>Distribuer</button>
+		<p class="muted" id="giveHelp">Tu peux distribuer même sans avoir la carte… si tu oses bluffer.</p>
+	</section>
+
+	<section id="end">
+		<h1>Fin de la pyramide</h1>
+		<div class="panel" id="stats"></div>
+		<p class="muted">Ta main est révélée sur la TV. Une nouvelle partie peut être lancée depuis la TV.</p>
+	</section>
+
+	<section id="refused">
+		<h1>Impossible de rejoindre</h1>
+		<p class="muted" id="refusedText"></p>
+		<button class="ghost" id="retryBtn">Réessayer</button>
+	</section>
+
+	<div class="sheet" id="targets"></div>
+	<div class="sheet" id="giftSheet"></div>
+	<div class="toast" id="toast"></div>
+
+	<script src="js/peerjs.min.js"></script>
+	<script>
+		(function () {
+			var SUIT_PATHS = {
+				h: 'M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.9 4.5 6.6 4.5c2.2 0 3.6 1.3 5.4 3.3 1.8-2 3.2-3.3 5.4-3.3 3.7 0 5.7 3.9 4.2 7.3C19.5 16.4 12 21 12 21z',
+				d: 'M12 2l7.5 10L12 22 4.5 12z',
+				c: 'M12 2.5a4.3 4.3 0 0 1 4.2 5.4 4.3 4.3 0 1 1-1.9 7.4l1.2 6.2H8.5l1.2-6.2a4.3 4.3 0 1 1-1.9-7.4A4.3 4.3 0 0 1 12 2.5z',
+				s: 'M12 2s8.5 6.7 8.5 11.3a4.3 4.3 0 0 1-7 3.4l1 4.8h-5l1-4.8a4.3 4.3 0 0 1-7-3.4C3.5 8.7 12 2 12 2z'
+			};
+
+			var room = (location.hash.match(/r=([a-z0-9-]+)/) || [])[1];
+			var pid;
+			try {
+				pid = localStorage.getItem('pyrPid');
+				if (!pid) {
+					pid = Math.random().toString(36).slice(2, 12);
+					localStorage.setItem('pyrPid', pid);
+				}
+				document.getElementById('name').value = localStorage.getItem('pyrName') || '';
+			} catch (e) {
+				pid = Math.random().toString(36).slice(2, 12);
+			}
+
+			var peer = null, conn = null;
+			var unitNames = ['gorgée', 'gorgées'];
+			var state = { hand: [], hidden: false, card: null, value: 0, gave: true, targets: [], drinks: 0 };
+			var memoTimer = null, toastTimer = null;
+
+			function $(id) { return document.getElementById(id); }
+
+			function escapeHtml(text) {
+				return String(text == null ? '' : text).replace(/[&<>"']/g, function (c) {
+					return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c];
+				});
+			}
+
+			function unit(n) {
+				return n + ' ' + (n > 1 ? unitNames[1] : unitNames[0]);
+			}
+
+			function show(id) {
+				['join', 'wait', 'game', 'end', 'refused'].forEach(function (s) {
+					$(s).className = s === id ? 'is-on' : '';
+				});
+			}
+
+			function toast(text, bad) {
+				$('toast').textContent = text;
+				$('toast').className = 'toast is-on' + (bad ? ' bad' : '');
+				clearTimeout(toastTimer);
+				toastTimer = setTimeout(function () { $('toast').className = 'toast'; }, 4500);
+				if (navigator.vibrate) navigator.vibrate(bad ? [80, 60, 80] : 30);
+			}
+
+			function cardHtml(card, big) {
+				if (!card) return '<div class="card' + (big ? ' big' : '') + '"></div>';
+				var color = card.s === 'h' || card.s === 'd' ? 'red' : 'black';
+				return '<div class="card is-face ' + color + (big ? ' big' : '') + '"><div class="rank">' + card.r + '</div>' +
+					'<svg viewBox="0 0 24 24"><path d="' + SUIT_PATHS[card.s] + '"/></svg></div>';
+			}
+
+			// ---------- Connexion ----------
+			function connect() {
+				var name = $('name').value.trim();
+				if (!room) {
+					$('joinStatus').textContent = 'Scanne le QR code affiché sur la TV.';
+					return;
+				}
+				if (!name) {
+					$('joinStatus').textContent = 'Choisis un pseudo.';
+					return;
+				}
+				try { localStorage.setItem('pyrName', name); } catch (e) { }
+				$('joinStatus').textContent = 'Connexion à la TV…';
+				$('joinBtn').disabled = true;
+				if (peer) peer.destroy();
+				peer = new Peer();
+				peer.on('open', function () {
+					conn = peer.connect(room, { serialization: 'json', reliable: true });
+					conn.on('open', function () { conn.send({ t: 'hello', pid: pid, name: name }); });
+					conn.on('data', onMessage);
+					conn.on('close', lost);
+				});
+				peer.on('error', function (err) {
+					lost(err.type === 'peer-unavailable' ? 'Cette partie n\'existe plus sur la TV. Rescanne le QR code.' : null);
+				});
+			}
+
+			function lost(message) {
+				$('joinBtn').disabled = false;
+				$('refusedText').textContent = typeof message === 'string' ? message : 'La connexion avec la TV a été perdue.';
+				show('refused');
+			}
+
+			function sendTv(msg) {
+				if (conn && conn.open) conn.send(msg);
+			}
+
+			// ---------- Messages de la TV ----------
+			function onMessage(msg) {
+				if (!msg) return;
+				switch (msg.t) {
+					case 'welcome':
+						document.documentElement.style.setProperty('--c', msg.color);
+						$('me').textContent = $('name').value.trim();
+						if (msg.unit) unitNames = msg.unit;
+						break;
+					case 'unit':
+						unitNames = msg.unit;
+						renderGame();
+						break;
+					case 'refused':
+						lost(msg.reason);
+						break;
+					case 'lobby':
+						show('wait');
+						$('players').innerHTML = msg.players.map(function (p) {
+							return '<div><span class="dot" style="background:' + p.color + ';box-shadow:0 0 8px ' + p.color + '"></span>' + escapeHtml(p.name) + '</div>';
+						}).join('');
+						break;
+					case 'hand':
+						state.hand = msg.cards;
+						state.hidden = msg.hidden;
+						show('game');
+						startMemo(msg.memory, msg.replaced);
+						renderGame();
+						break;
+					case 'card':
+						state.card = msg.card;
+						state.value = msg.value;
+						state.gave = msg.gave;
+						state.targets = msg.targets;
+						$('targets').className = 'sheet';
+						show('game');
+						renderGame();
+						if (navigator.vibrate) navigator.vibrate(15);
+						break;
+					case 'given':
+						toast('Tu as donné ' + unit(msg.amount) + ' à ' + msg.to + '. En attente de sa réponse…');
+						break;
+					case 'gift':
+						showGift(msg);
+						break;
+					case 'result':
+						state.drinks = msg.drinks;
+						renderDrinks();
+						toast(msg.text, msg.bad);
+						break;
+					case 'end':
+						show('end');
+						$('giftSheet').className = 'sheet';
+						$('targets').className = 'sheet';
+						$('stats').innerHTML = '<div style="font-size:20px;font-weight:700;line-height:1.7">Tu as bu ' + unit(msg.drinks) +
+							'<br>Tu as distribué ' + unit(msg.given) + (msg.caught ? '<br>Démasqué ' + msg.caught + ' fois' : '') + '</div>';
+						state.drinks = msg.drinks;
+						renderDrinks();
+						break;
+				}
+			}
+
+			// Montre la main quelques secondes pour la mémoriser, puis la cache
+			function startMemo(seconds, replaced) {
+				clearInterval(memoTimer);
+				$('memo').textContent = '';
+				if (!seconds) return;
+				var left = seconds;
+				var hidden = state.hidden;
+				state.hidden = false;
+				$('memo').textContent = (replaced ? 'Nouvelle carte ! ' : 'Mémorise ta main : ') + left + ' s';
+				memoTimer = setInterval(function () {
+					left--;
+					if (left <= 0) {
+						clearInterval(memoTimer);
+						state.hidden = hidden || true;
+						$('memo').textContent = 'Ta main est cachée : à toi de t\'en souvenir.';
+						renderGame();
+					} else {
+						$('memo').textContent = (replaced ? 'Nouvelle carte ! ' : 'Mémorise ta main : ') + left + ' s';
+					}
+				}, 1000);
+			}
+
+			function renderDrinks() {
+				$('drinks').style.display = '';
+				$('drinks').textContent = unit(state.drinks) + (unitNames[0] === 'gorgée' ? ' bues' : '');
+			}
+
+			function renderGame() {
+				$('hand').innerHTML = state.hand.map(function (c) { return cardHtml(state.hidden ? null : c); }).join('');
+				if (state.card) {
+					$('current').innerHTML = '<div class="current">' + cardHtml(state.card, true) + '<div><div class="muted" style="margin-top:0">Carte retournée</div>' +
+						'<div class="amount">' + unit(state.value) + '</div><div class="muted" style="margin-top:2px">pour qui a un ' + state.card.r + '</div></div></div>';
+					$('giveBtn').disabled = state.gave;
+					$('giveBtn').textContent = state.gave ? 'Déjà distribué pour cette carte' : 'J\'ai un ' + state.card.r + ' : distribuer ' + unit(state.value);
+				} else {
+					$('current').innerHTML = '<div class="muted" style="margin-top:0">La première carte n\'est pas encore retournée.</div>';
+					$('giveBtn').disabled = true;
+					$('giveBtn').textContent = 'Distribuer';
+				}
+			}
+
+			// ---------- Distribuer ----------
+			$('giveBtn').onclick = function () {
+				if (state.gave || !state.card) return;
+				$('targets').innerHTML = '<h1 style="font-size:22px">À qui ?</h1><p class="muted">' + unit(state.value) + ' pour la carte ' + state.card.r + '</p>' +
+					state.targets.map(function (p) {
+						return '<button class="target" data-pid="' + escapeHtml(p.pid) + '"><span class="dot" style="background:' + p.color + ';box-shadow:none"></span>' + escapeHtml(p.name) + '</button>';
+					}).join('') + '<button class="ghost" id="cancelTargets">Annuler</button>';
+				$('targets').className = 'sheet is-on';
+			};
+
+			$('targets').onclick = function (e) {
+				var target = e.target.closest ? e.target.closest('[data-pid]') : null;
+				if (e.target.id === 'cancelTargets') {
+					$('targets').className = 'sheet';
+				} else if (target) {
+					state.gave = true;
+					sendTv({ t: 'give', to: target.getAttribute('data-pid') });
+					$('targets').className = 'sheet';
+					renderGame();
+				}
+			};
+
+			// ---------- Recevoir ----------
+			function showGift(msg) {
+				$('giftSheet').innerHTML = '<h1 style="font-size:24px">' + escapeHtml(msg.from) + ' te donne ' + unit(msg.amount) + '</h1>' +
+					'<p class="muted">Il prétend avoir un ' + escapeHtml(msg.rank) + '. Si tu cries « Menteur ! » et qu\'il bluffait, il boit le double. Sinon, c\'est toi.</p>' +
+					'<button data-answer="0">J\'accepte</button><button class="danger" data-answer="1">Menteur !</button>';
+				$('giftSheet').setAttribute('data-gift', msg.id);
+				$('giftSheet').className = 'sheet is-on';
+				if (navigator.vibrate) navigator.vibrate([40, 40, 40]);
+			}
+
+			$('giftSheet').onclick = function (e) {
+				var a = e.target.getAttribute('data-answer');
+				if (a === null) return;
+				sendTv({ t: 'answer', gift: +$('giftSheet').getAttribute('data-gift'), contest: a === '1' });
+				$('giftSheet').className = 'sheet';
+			};
+
+			$('joinBtn').onclick = connect;
+			$('retryBtn').onclick = function () { show('join'); connect(); };
+			$('name').addEventListener('keydown', function (e) { if (e.key === 'Enter') connect(); });
+
+			show('join');
+			if (!room) $('joinStatus').textContent = 'Scanne le QR code affiché sur la TV.';
+		})();
+	</script>
+</body>
+
+</html>
