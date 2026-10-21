@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+	<meta name="robots" content="noindex">
+	<meta name="theme-color" content="#000000">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<title>Pong · Manette</title>
+	<style>
+		:root {
+			--text: #f5f5f7;
+			--text-secondary: #8e8e93;
+			--c: #0a84ff;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			-webkit-tap-highlight-color: transparent;
+		}
+
+		html,
+		body {
+			height: 100%;
+			overflow: hidden;
+			overscroll-behavior: none;
+			background: #000;
+		}
+
+		body {
+			display: flex;
+			flex-direction: column;
+			color: var(--text);
+			font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+			-webkit-font-smoothing: antialiased;
+			padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+			-webkit-user-select: none;
+			user-select: none;
+		}
+
+		header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.who {
+			display: flex;
+			align-items: center;
+			font-size: 18px;
+			font-weight: 700;
+		}
+
+		.dot {
+			width: 14px;
+			height: 14px;
+			margin-right: 10px;
+			border-radius: 50%;
+			background: var(--c);
+			box-shadow: 0 0 12px var(--c);
+		}
+
+		.score {
+			font-size: 28px;
+			font-weight: 800;
+			letter-spacing: -0.5px;
+		}
+
+		.status {
+			margin-top: 6px;
+			font-size: 14px;
+			color: var(--text-secondary);
+		}
+
+		.pad {
+			position: relative;
+			flex: 1;
+			margin-top: 14px;
+			border-radius: 28px;
+			background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+			box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+			touch-action: none;
+			overflow: hidden;
+		}
+
+		.paddle {
+			position: absolute;
+			left: 18%;
+			right: 18%;
+			height: 18%;
+			border-radius: 18px;
+			background: var(--c);
+			box-shadow: 0 0 40px var(--c);
+			transform: translateY(-50%);
+			will-change: top;
+		}
+
+		.help {
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 18px;
+			text-align: center;
+			font-size: 15px;
+			color: var(--text-secondary);
+			pointer-events: none;
+		}
+
+		.banner {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			padding: 20px 28px;
+			border-radius: 22px;
+			background: rgba(28, 28, 30, 0.95);
+			text-align: center;
+			font-size: 26px;
+			font-weight: 800;
+			display: none;
+		}
+
+		.banner.is-visible {
+			display: block;
+		}
+
+		.banner button {
+			display: block;
+			margin: 14px auto 0;
+			padding: 12px 22px;
+			border: 0;
+			border-radius: 999px;
+			background: var(--text);
+			color: #000;
+			font: inherit;
+			font-size: 17px;
+			font-weight: 700;
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<div class="who"><div class="dot"></div><span id="name">Manette</span></div>
+		<div class="score" id="score"></div>
+	</header>
+	<div class="status" id="status">Connexion à la TV…</div>
+
+	<div class="pad" id="pad">
+		<div class="paddle" id="paddle" style="top:50%"></div>
+		<div class="help">Glisse ton doigt de haut en bas</div>
+		<div class="banner" id="banner"></div>
+	</div>
+
+	<script src="js/peerjs.min.js"></script>
+	<script>
+		(function () {
+			var params = {};
+			location.hash.replace(/^#/, '').split('&').forEach(function (kv) {
+				var p = kv.split('=');
+				if (p[0]) params[p[0]] = decodeURIComponent(p[1] || '');
+			});
+			var room = params.r;
+			var side = params.s === '2' ? 2 : 1;
+			var colors = { 1: '#0a84ff', 2: '#ff375f' };
+
+			var pad = document.getElementById('pad');
+			var paddle = document.getElementById('paddle');
+			var banner = document.getElementById('banner');
+			var statusEl = document.getElementById('status');
+			var conn = null;
+			var y = 0.5;
+			var lastSent = -1;
+			var peer = null;
+
+			document.documentElement.style.setProperty('--c', colors[side]);
+			document.getElementById('name').textContent = 'Joueur ' + side + ' · raquette ' + (side === 1 ? 'gauche' : 'droite');
+
+			function showBanner(html) {
+				banner.innerHTML = html;
+				banner.className = 'banner is-visible';
+			}
+
+			function hideBanner() {
+				banner.className = 'banner';
+			}
+
+			// Garde l'écran allumé pendant la partie quand le navigateur le permet
+			function keepAwake() {
+				if (navigator.wakeLock && navigator.wakeLock.request) {
+					navigator.wakeLock.request('screen').catch(function () { });
+				}
+			}
+
+			function connect() {
+				if (!room) {
+					statusEl.textContent = 'Scanne un QR code affiché sur la TV.';
+					return;
+				}
+				statusEl.textContent = 'Connexion à la TV…';
+				hideBanner();
+				if (peer) peer.destroy();
+				peer = new Peer();
+				peer.on('open', function () {
+					conn = peer.connect(room, { serialization: 'json', reliable: false });
+					conn.on('open', function () {
+						conn.send({ t: 'hello', s: side });
+						lastSent = -1;
+					});
+					conn.on('data', onMessage);
+					conn.on('close', onLost);
+					conn.on('error', onLost);
+				});
+				peer.on('error', function (err) {
+					if (err.type === 'peer-unavailable') onLost('La partie n\'existe plus sur la TV. Rescanne le QR code.');
+					else onLost();
+				});
+			}
+
+			function onLost(message) {
+				statusEl.textContent = 'Déconnecté';
+				showBanner((typeof message === 'string' ? message : 'Connexion perdue') + '<button id="retry">Reconnecter</button>');
+				document.getElementById('retry').onclick = connect;
+			}
+
+			function onMessage(msg) {
+				if (!msg) return;
+				if (msg.t === 'welcome') {
+					statusEl.textContent = 'Connecté à la TV · ' + msg.name;
+					keepAwake();
+				} else if (msg.t === 'hit') {
+					if (navigator.vibrate) navigator.vibrate(18);
+				} else if (msg.t === 'score') {
+					document.getElementById('score').textContent = msg.me + ' – ' + msg.them;
+					hideBanner();
+				} else if (msg.t === 'end') {
+					showBanner(msg.win ? 'Victoire ! 🏆' : 'Perdu…');
+					if (navigator.vibrate) navigator.vibrate(msg.win ? [60, 60, 60] : 200);
+				}
+			}
+
+			// Position du doigt → position de la raquette (0 en haut, 1 en bas)
+			function track(e) {
+				e.preventDefault();
+				var touch = e.touches ? e.touches[0] : e;
+				if (!touch) return;
+				var rect = pad.getBoundingClientRect();
+				y = Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height));
+				paddle.style.top = (9 + y * 82) + '%';
+			}
+
+			pad.addEventListener('touchstart', track, { passive: false });
+			pad.addEventListener('touchmove', track, { passive: false });
+			pad.addEventListener('mousemove', function (e) { if (e.buttons) track(e); });
+
+			// Envoi à la TV au rythme de l'écran, seulement quand la position change
+			(function loop() {
+				if (conn && conn.open && Math.abs(y - lastSent) > 0.002) {
+					try {
+						conn.send({ t: 'y', y: Math.round(y * 1000) / 1000 });
+						lastSent = y;
+					} catch (e) { }
+				}
+				requestAnimationFrame(loop);
+			})();
+
+			document.addEventListener('visibilitychange', function () {
+				if (!document.hidden) keepAwake();
+			});
+
+			connect();
+		})();
+	</script>
+</body>
+
+</html>
