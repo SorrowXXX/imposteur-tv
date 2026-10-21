@@ -263,7 +263,7 @@
 				var color = data ? COLORS[data.c % COLORS.length] : '#8e8e93';
 				document.documentElement.style.setProperty('--color', color);
 				document.getElementById('av').textContent = data ? data.p : '?';
-				document.getElementById('player').textContent = data ? t.player + ' ' + data.p : '';
+				document.getElementById('player').textContent = data ? (data.n || t.player + ' ' + data.p) : '';
 				document.getElementById('round').textContent = data ? t.round + ' ' + data.m : '';
 				document.getElementById('round').style.display = data ? '' : 'none';
 				render();
