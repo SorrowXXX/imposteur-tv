@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<meta name="robots" content="noindex">
+	<meta name="theme-color" content="#000000">
+	<title>Codenames · Carte secrète</title>
+	<style>
+		:root {
+			--text: #f5f5f7;
+			--text-secondary: #8e8e93;
+			--red: #ff453a;
+			--blue: #0a84ff;
+			--neutral: #a59d8f;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			-webkit-tap-highlight-color: transparent;
+		}
+
+		html,
+		body {
+			height: 100%;
+			background: #000;
+		}
+
+		body {
+			display: flex;
+			flex-direction: column;
+			color: var(--text);
+			font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+			-webkit-font-smoothing: antialiased;
+			padding: max(18px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom));
+			-webkit-user-select: none;
+			user-select: none;
+		}
+
+		header {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+		}
+
+		h1 {
+			font-size: 26px;
+			font-weight: 800;
+			letter-spacing: -0.5px;
+		}
+
+		.game {
+			padding: 5px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.1);
+			font-size: 14px;
+			font-weight: 600;
+			color: var(--text-secondary);
+		}
+
+		.starter {
+			margin-top: 6px;
+			font-size: 16px;
+			color: var(--text-secondary);
+		}
+
+		.starter strong.r { color: var(--red); }
+		.starter strong.b { color: var(--blue); }
+
+		main {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 16px 0;
+			cursor: pointer;
+		}
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			gap: 6px;
+			width: min(100%, 560px, calc((100vh - 230px) * 1.45));
+		}
+
+		.cell {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			aspect-ratio: 1.45;
+			padding: 2px;
+			border-radius: 9px;
+			font-size: clamp(9px, 2.6vw, 15px);
+			font-weight: 700;
+			line-height: 1.1;
+			text-align: center;
+			text-transform: uppercase;
+			word-break: break-word;
+			hyphens: auto;
+		}
+
+		.cell.r { background: var(--red); }
+		.cell.b { background: var(--blue); }
+		.cell.n { background: var(--neutral); color: rgba(0, 0, 0, 0.75); }
+		.cell.a { background: #000; box-shadow: inset 0 0 0 3px var(--red); color: var(--red); }
+
+		.hidden {
+			text-align: center;
+		}
+
+		.hidden .eye {
+			font-size: 54px;
+			line-height: 1;
+		}
+
+		.hidden .title {
+			margin-top: 16px;
+			font-size: 24px;
+			font-weight: 700;
+		}
+
+		.hidden .text {
+			margin-top: 8px;
+			font-size: 16px;
+			color: var(--text-secondary);
+		}
+
+		.legend {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 8px 16px;
+			font-size: 14px;
+			color: var(--text-secondary);
+		}
+
+		.legend span::before {
+			content: "";
+			display: inline-block;
+			width: 11px;
+			height: 11px;
+			margin-right: 6px;
+			border-radius: 3px;
+			background: var(--c);
+			vertical-align: -1px;
+		}
+
+		footer {
+			margin-top: 10px;
+			text-align: center;
+			font-size: 13px;
+			color: var(--text-secondary);
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<h1 id="title">Carte secrète</h1>
+		<div class="game" id="game"></div>
+	</header>
+	<div class="starter" id="starter"></div>
+
+	<main id="main"></main>
+
+	<div class="legend" id="legend"></div>
+	<footer id="footer"></footer>
+
+	<script>
+		(function () {
+			var TEXT = {
+				fr: {
+					title: 'Carte secrète', game: 'Partie', starts: 'commencent', red: 'Rouges', blue: 'Bleus',
+					neutral: 'Neutre', assassin: 'Assassin', show: 'Touche pour voir la carte', secret: 'Maîtres-espions uniquement.',
+					hide: 'Touche la carte pour la cacher', invalid: 'Scanne le QR code affiché sur la TV.'
+				},
+				en: {
+					title: 'Secret key', game: 'Game', starts: 'start', red: 'Red', blue: 'Blue',
+					neutral: 'Neutral', assassin: 'Assassin', show: 'Tap to see the key', secret: 'Spymasters only.',
+					hide: 'Tap the key to hide it', invalid: 'Scan the QR code shown on the TV.'
+				},
+				es: {
+					title: 'Carta secreta', game: 'Partida', starts: 'empiezan', red: 'Rojos', blue: 'Azules',
+					neutral: 'Neutral', assassin: 'Asesino', show: 'Toca para ver la carta', secret: 'Solo para jefes de espías.',
+					hide: 'Toca la carta para ocultarla', invalid: 'Escanea el código QR de la TV.'
+				}
+			};
+
+			var main = document.getElementById('main');
+			var data = null;
+			var t = TEXT.fr;
+			var shown = false;
+
+			function decode(hash) {
+				try {
+					var raw = hash.replace(/^#/, '').replace(/-/g, '+').replace(/_/g, '/');
+					while (raw.length % 4) raw += '=';
+					var d = JSON.parse(decodeURIComponent(escape(atob(raw))));
+					d.words = d.w.split('|');
+					return d.words.length === 25 && d.k.length === 25 ? d : null;
+				} catch (e) {
+					return null;
+				}
+			}
+
+			function escapeHtml(text) {
+				return String(text).replace(/[&<>"']/g, function (c) {
+					return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c];
+				});
+			}
+
+			function count(letter) {
+				return data.k.split('').filter(function (c) { return c === letter; }).length;
+			}
+
+			function render() {
+				if (!data) {
+					main.innerHTML = '<div class="hidden"><div class="text">' + TEXT.fr.invalid + '</div></div>';
+					return;
+				}
+				if (!shown) {
+					main.innerHTML = '<div class="hidden"><div class="eye">👁</div><div class="title">' + t.show + '</div><div class="text">' + t.secret + '</div></div>';
+					document.getElementById('footer').textContent = '';
+					return;
+				}
+				var html = '<div class="grid">';
+				data.words.forEach(function (word, i) {
+					html += '<div class="cell ' + data.k.charAt(i) + '">' + escapeHtml(word) + '</div>';
+				});
+				main.innerHTML = html + '</div>';
+				document.getElementById('footer').textContent = t.hide;
+			}
+
+			function load() {
+				data = decode(location.hash);
+				t = (data && TEXT[data.l]) || TEXT.fr;
+				shown = false;
+				document.documentElement.lang = (data && data.l) || 'fr';
+				document.getElementById('title').textContent = t.title;
+				document.getElementById('game').textContent = data ? t.game + ' ' + data.g : '';
+				document.getElementById('game').style.display = data ? '' : 'none';
+				if (data) {
+					var starter = data.s === 'r' ? t.red : t.blue;
+					document.getElementById('starter').innerHTML = '<strong class="' + data.s + '">' + starter + '</strong> ' + t.starts;
+					document.getElementById('legend').innerHTML =
+						'<span style="--c:var(--red)">' + t.red + ' ' + count('r') + '</span>' +
+						'<span style="--c:var(--blue)">' + t.blue + ' ' + count('b') + '</span>' +
+						'<span style="--c:var(--neutral)">' + t.neutral + ' ' + count('n') + '</span>' +
+						'<span style="--c:#000;">' + t.assassin + ' ' + count('a') + '</span>';
+				}
+				render();
+			}
+
+			main.addEventListener('click', function () {
+				if (!data) return;
+				shown = !shown;
+				render();
+			});
+			window.addEventListener('hashchange', load);
+			load();
+		})();
+	</script>
+</body>
+
+</html>
