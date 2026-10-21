@@ -96,6 +96,7 @@
 			box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 			text-align: center;
 			cursor: pointer;
+			overflow: hidden;
 		}
 
 		.card::before {
@@ -105,7 +106,6 @@
 			left: 0;
 			right: 0;
 			height: 6px;
-			border-radius: 32px 32px 0 0;
 			background: var(--color);
 		}
 
@@ -182,7 +182,7 @@
 
 			var TEXT = {
 				fr: {
-					player: 'Joueur', round: 'Manche', tapShow: 'Touche pour voir ton mot', tapHide: 'Touche la carte pour la cacher',
+					player: 'Joueur', round: 'Manche', role: 'Ton rôle', tapShow: 'Touche pour voir ton mot', tapHide: 'Touche la carte pour la cacher',
 					keepSecret: 'Cache bien ton écran.', yourWord: 'Ton mot',
 					civil: 'Certains joueurs ont un mot différent. Décris le tien sans le dire.',
 					undercover: 'Tu es undercover', undercoverText: 'Ton mot est différent de celui des civils. Fonds-toi dans la masse !',
@@ -190,7 +190,7 @@
 					hint: 'Indice', invalid: 'Scanne le QR code affiché sur la TV pour recevoir ton mot.'
 				},
 				en: {
-					player: 'Player', round: 'Round', tapShow: 'Tap to see your word', tapHide: 'Tap the card to hide it',
+					player: 'Player', round: 'Round', role: 'Your role', tapShow: 'Tap to see your word', tapHide: 'Tap the card to hide it',
 					keepSecret: 'Keep your screen hidden.', yourWord: 'Your word',
 					civil: 'Some players have a different word. Describe yours without saying it.',
 					undercover: 'You are undercover', undercoverText: 'Your word is different from the civilians\'. Blend in!',
@@ -198,7 +198,7 @@
 					hint: 'Hint', invalid: 'Scan the QR code shown on the TV to get your word.'
 				},
 				es: {
-					player: 'Jugador', round: 'Ronda', tapShow: 'Toca para ver tu palabra', tapHide: 'Toca la carta para ocultarla',
+					player: 'Jugador', round: 'Ronda', role: 'Tu rol', tapShow: 'Toca para ver tu palabra', tapHide: 'Toca la carta para ocultarla',
 					keepSecret: 'Oculta bien tu pantalla.', yourWord: 'Tu palabra',
 					civil: 'Algunos jugadores tienen otra palabra. Describe la tuya sin decirla.',
 					undercover: 'Eres undercover', undercoverText: 'Tu palabra es distinta a la de los civiles. ¡Pasa desapercibido!',
@@ -241,7 +241,7 @@
 				}
 				var html;
 				if (data.r === 'w') {
-					html = '<div class="label">' + t.round + ' ' + data.m + '</div><div class="word">' + t.mw + '</div>' +
+					html = '<div class="label">' + t.role + '</div><div class="word">' + t.mw + '</div>' +
 						'<div class="text">' + t.mwText + '</div>' +
 						(data.k ? '<div class="tag">' + t.hint + ' : ' + escapeHtml(data.k) + '</div>' : '');
 				} else if (data.r === 'u') {
