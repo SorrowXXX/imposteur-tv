@@ -148,6 +148,10 @@
 			vertical-align: -1px;
 		}
 
+		.legend .assassin::before {
+			box-shadow: inset 0 0 0 2px var(--red);
+		}
+
 		footer {
 			margin-top: 10px;
 			text-align: center;
@@ -249,7 +253,7 @@
 						'<span style="--c:var(--red)">' + t.red + ' ' + count('r') + '</span>' +
 						'<span style="--c:var(--blue)">' + t.blue + ' ' + count('b') + '</span>' +
 						'<span style="--c:var(--neutral)">' + t.neutral + ' ' + count('n') + '</span>' +
-						'<span style="--c:#000;">' + t.assassin + ' ' + count('a') + '</span>';
+						'<span class="assassin" style="--c:#000;">' + t.assassin + ' ' + count('a') + '</span>';
 				}
 				render();
 			}
