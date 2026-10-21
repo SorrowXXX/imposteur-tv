@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+	<meta name="robots" content="noindex">
+	<meta name="theme-color" content="#000000">
+	<title>Blind test · Joueur</title>
+	<style>
+		:root {
+			--text: #f5f5f7;
+			--text-secondary: #8e8e93;
+			--c: #ff2d55;
+			--accent: #ff2d55;
+			--good: #30d158;
+			--bad: #ff453a;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			-webkit-tap-highlight-color: transparent;
+		}
+
+		html,
+		body {
+			min-height: 100%;
+			background: #000;
+		}
+
+		body {
+			color: var(--text);
+			font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+			-webkit-font-smoothing: antialiased;
+			padding: max(18px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+			-webkit-user-select: none;
+			user-select: none;
+		}
+
+		header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.who {
+			display: flex;
+			align-items: center;
+			font-size: 19px;
+			font-weight: 700;
+		}
+
+		.dot {
+			width: 14px;
+			height: 14px;
+			margin-right: 10px;
+			border-radius: 50%;
+			background: var(--c);
+			box-shadow: 0 0 12px var(--c);
+		}
+
+		.score {
+			padding: 6px 14px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.1);
+			font-size: 15px;
+			font-weight: 800;
+		}
+
+		section {
+			display: none;
+			margin-top: 22px;
+		}
+
+		section.is-on {
+			display: block;
+		}
+
+		h1 {
+			font-size: 28px;
+			font-weight: 800;
+			letter-spacing: -0.5px;
+		}
+
+		.muted {
+			margin-top: 8px;
+			font-size: 16px;
+			line-height: 1.45;
+			color: var(--text-secondary);
+		}
+
+		.tag {
+			display: inline-block;
+			margin-top: 10px;
+			padding: 6px 12px;
+			border-radius: 999px;
+			background: linear-gradient(90deg, #ff9f0a, #ff2d55);
+			font-size: 13px;
+			font-weight: 800;
+		}
+
+		input {
+			width: 100%;
+			margin-top: 14px;
+			padding: 16px 18px;
+			border: 0;
+			border-radius: 16px;
+			outline: none;
+			background: rgba(255, 255, 255, 0.1);
+			color: var(--text);
+			font: inherit;
+			font-size: 19px;
+			font-weight: 600;
+			-webkit-user-select: text;
+			user-select: text;
+		}
+
+		input.is-found {
+			background: rgba(48, 209, 88, 0.2);
+			color: var(--good);
+		}
+
+		button {
+			display: block;
+			width: 100%;
+			margin-top: 12px;
+			padding: 17px;
+			border: 0;
+			border-radius: 16px;
+			background: var(--text);
+			color: #000;
+			font: inherit;
+			font-size: 18px;
+			font-weight: 700;
+		}
+
+		button:disabled {
+			opacity: 0.35;
+		}
+
+		.list div {
+			display: flex;
+			align-items: center;
+			margin-top: 8px;
+			padding: 13px 16px;
+			border-radius: 14px;
+			background: rgba(255, 255, 255, 0.07);
+			font-size: 17px;
+			font-weight: 600;
+		}
+
+		.list .dot {
+			width: 11px;
+			height: 11px;
+		}
+
+		/* Buzzer */
+		.buzz {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: min(78vw, 340px);
+			height: min(78vw, 340px);
+			margin: 30px auto 0;
+			border-radius: 50%;
+			background: radial-gradient(circle at 35% 30%, #ff6b8a, #ff2d55 45%, #b0002a);
+			box-shadow: 0 18px 50px rgba(255, 45, 85, 0.45), inset 0 -10px 30px rgba(0, 0, 0, 0.3);
+			color: #fff;
+			font-size: 46px;
+			font-weight: 900;
+			letter-spacing: 2px;
+			transition: transform 80ms ease;
+		}
+
+		.buzz:active {
+			transform: scale(0.95);
+		}
+
+		.buzz:disabled {
+			opacity: 0.3;
+			box-shadow: none;
+		}
+
+		/* QCM */
+		.answer {
+			text-align: left;
+			background: rgba(255, 255, 255, 0.1);
+			color: var(--text);
+			font-size: 17px;
+			line-height: 1.3;
+		}
+
+		.answer.is-chosen {
+			background: var(--text);
+			color: #000;
+			opacity: 1;
+		}
+
+		.answer.is-right {
+			background: var(--good);
+			color: #000;
+			opacity: 1;
+		}
+
+		.answer.is-wrong {
+			background: var(--bad);
+			color: #fff;
+			opacity: 1;
+		}
+
+		.reveal {
+			display: flex;
+			align-items: center;
+			margin-top: 18px;
+			padding: 14px;
+			border-radius: 20px;
+			background: rgba(255, 255, 255, 0.07);
+		}
+
+		.reveal img {
+			width: 90px;
+			height: 90px;
+			margin-right: 14px;
+			border-radius: 14px;
+		}
+
+		.reveal .t {
+			font-size: 19px;
+			font-weight: 800;
+		}
+
+		.reveal .a {
+			margin-top: 4px;
+			font-size: 16px;
+			color: #ff6482;
+			font-weight: 600;
+		}
+
+		.points {
+			margin-top: 20px;
+			text-align: center;
+			font-size: 54px;
+			font-weight: 900;
+		}
+
+		.points.is-zero {
+			color: var(--text-secondary);
+		}
+
+		.points.is-plus {
+			color: var(--good);
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<div class="who"><div class="dot"></div><span id="me">Blind test</span></div>
+		<div class="score" id="score" style="display:none">0 pt</div>
+	</header>
+
+	<section id="join">
+		<h1>Rejoindre le blind test</h1>
+		<p class="muted">Choisis le pseudo affiché sur la TV.</p>
+		<input id="name" maxlength="14" placeholder="Ton pseudo" autocomplete="off" autocapitalize="words">
+		<button id="joinBtn">Rejoindre</button>
+		<p class="muted" id="joinStatus"></p>
+	</section>
+
+	<section id="wait">
+		<h1>Tu es dans la partie</h1>
+		<p class="muted">Le blind test se lance depuis la TV.</p>
+		<div class="list" id="players"></div>
+	</section>
+
+	<section id="vote">
+		<h1>Choisis le thème</h1>
+		<p class="muted">Le thème le plus voté sera joué.</p>
+		<div id="voteOptions"></div>
+	</section>
+
+	<section id="play">
+		<p class="muted" id="roundInfo" style="margin-top:0"></p>
+		<h1 id="playTitle">Écoute…</h1>
+		<div id="special"></div>
+		<p class="muted" id="playHelp"></p>
+		<div id="playZone"></div>
+	</section>
+
+	<section id="result">
+		<p class="muted" style="margin-top:0">C'était…</p>
+		<div class="reveal" id="revealBox"></div>
+		<div class="points" id="points"></div>
+		<p class="muted" id="resultHelp" style="text-align:center"></p>
+	</section>
+
+	<section id="final">
+		<h1 id="finalTitle"></h1>
+		<p class="muted" id="finalText"></p>
+	</section>
+
+	<section id="refused">
+		<h1>Impossible de rejoindre</h1>
+		<p class="muted" id="refusedText"></p>
+		<button id="retryBtn" style="background:rgba(255,255,255,0.1);color:var(--text)">Réessayer</button>
+	</section>
+
+	<script src="js/peerjs.min.js"></script>
+	<script>
+		(function () {
+			var room = (location.hash.match(/r=([a-z0-9-]+)/) || [])[1];
+			var pid;
+			try {
+				pid = localStorage.getItem('btPid');
+				if (!pid) {
+					pid = Math.random().toString(36).slice(2, 12);
+					localStorage.setItem('btPid', pid);
+				}
+				document.getElementById('name').value = localStorage.getItem('btName') || '';
+			} catch (e) {
+				pid = Math.random().toString(36).slice(2, 12);
+			}
+
+			var peer = null, conn = null;
+			var round = null;
+			var chosen = null;
+
+			function $(id) { return document.getElementById(id); }
+
+			function escapeHtml(text) {
+				return String(text == null ? '' : text).replace(/[&<>"']/g, function (c) {
+					return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c];
+				});
+			}
+
+			function show(id) {
+				['join', 'wait', 'vote', 'play', 'result', 'final', 'refused'].forEach(function (s) {
+					$(s).className = s === id ? 'is-on' : '';
+				});
+			}
+
+			function vibrate(pattern) {
+				if (navigator.vibrate) navigator.vibrate(pattern);
+			}
+
+			function sendTv(msg) {
+				if (conn && conn.open) conn.send(msg);
+			}
+
+			// ---------- Connexion ----------
+			function connect() {
+				var name = $('name').value.trim();
+				if (!room) return ($('joinStatus').textContent = 'Scanne le QR code affiché sur la TV.');
+				if (!name) return ($('joinStatus').textContent = 'Choisis un pseudo.');
+				try { localStorage.setItem('btName', name); } catch (e) { }
+				$('joinStatus').textContent = 'Connexion à la TV…';
+				$('joinBtn').disabled = true;
+				if (peer) peer.destroy();
+				peer = new Peer();
+				peer.on('open', function () {
+					conn = peer.connect(room, { serialization: 'json', reliable: true });
+					conn.on('open', function () { conn.send({ t: 'hello', pid: pid, name: name }); });
+					conn.on('data', onMessage);
+					conn.on('close', function () { lost(); });
+				});
+				peer.on('error', function (err) {
+					lost(err.type === 'peer-unavailable' ? 'Ce blind test n\'existe plus sur la TV. Rescanne le QR code.' : null);
+				});
+			}
+
+			function lost(message) {
+				$('joinBtn').disabled = false;
+				$('refusedText').textContent = message || 'La connexion avec la TV a été perdue.';
+				show('refused');
+			}
+
+			// ---------- Messages de la TV ----------
+			function onMessage(m) {
+				if (!m) return;
+				switch (m.t) {
+					case 'welcome':
+						document.documentElement.style.setProperty('--c', m.color);
+						$('me').textContent = $('name').value.trim();
+						$('score').style.display = '';
+						break;
+					case 'refused':
+						lost(m.reason);
+						break;
+					case 'lobby':
+						show('wait');
+						$('players').innerHTML = m.players.map(function (p) {
+							return '<div><span class="dot" style="background:' + p.color + ';box-shadow:none"></span>' + escapeHtml(p.name) + '</div>';
+						}).join('');
+						break;
+					case 'score':
+						setScore(m.score);
+						break;
+					case 'vote':
+						show('vote');
+						$('voteOptions').innerHTML = m.options.map(function (o, i) {
+							return '<button data-vote="' + i + '"' + (m.voted ? ' disabled' : '') + '>' + escapeHtml(o) + '</button>';
+						}).join('');
+						break;
+					case 'voted':
+						[].forEach.call(document.querySelectorAll('[data-vote]'), function (b) { b.disabled = true; });
+						break;
+					case 'round':
+						startRound(m);
+						break;
+					case 'go':
+						enable(m.locked, m.answered);
+						break;
+					case 'buzzed':
+						onBuzzed(m);
+						break;
+					case 'wrong':
+						$('playTitle').textContent = 'Raté…';
+						$('playHelp').textContent = 'Mauvaise réponse : tu ne peux plus buzzer sur ce morceau.';
+						round.locked = true;
+						vibrate(200);
+						break;
+					case 'resume':
+						if (!round.locked) {
+							$('playTitle').textContent = 'Ça repart !';
+							$('playHelp').textContent = 'Buzz dès que tu sais.';
+							$('buzzBtn').disabled = false;
+						}
+						break;
+					case 'answered':
+						$('playHelp').textContent = 'Réponse envoyée. Attends la révélation…';
+						break;
+					case 'feedback':
+						onFeedback(m);
+						break;
+					case 'reveal':
+						onReveal(m);
+						break;
+					case 'final':
+						show('final');
+						$('finalTitle').textContent = m.rank === 1 ? 'Tu gagnes ! 🏆' : m.rank + (m.rank === 1 ? 'er' : 'e') + ' sur ' + m.total;
+						$('finalText').textContent = m.score + ' points · meilleure série : ' + m.best + ' bonnes réponses d\'affilée.';
+						setScore(m.score);
+						vibrate(m.rank === 1 ? [80, 60, 80, 60, 200] : 60);
+						break;
+				}
+			}
+
+			function setScore(n) {
+				$('score').textContent = n + ' pt' + (n > 1 ? 's' : '');
+			}
+
+			// ---------- Manche ----------
+			function startRound(m) {
+				round = m;
+				chosen = null;
+				show('play');
+				$('roundInfo').textContent = 'Manche ' + m.n + ' / ' + m.total + ' · ' + m.theme;
+				$('special').innerHTML = m.special === 'express' ? '<span class="tag">Express · 5 s · points doublés</span>' :
+					m.special === 'artist' ? '<span class="tag">Qui chante ? · seul l\'artiste compte</span>' : '';
+				$('playTitle').textContent = 'Prépare-toi…';
+				$('playHelp').textContent = '';
+				var zone = $('playZone');
+				if (m.mode === 'buzzer') {
+					zone.innerHTML = '<button class="buzz" id="buzzBtn" disabled>BUZZ</button>';
+					$('buzzBtn').onclick = function () {
+						this.disabled = true;
+						sendTv({ t: 'buzz' });
+						vibrate(40);
+					};
+				} else if (m.mode === 'qcm') {
+					zone.innerHTML = m.options.map(function (o, i) {
+						return '<button class="answer" data-i="' + i + '" disabled>' + escapeHtml(o) + '</button>';
+					}).join('');
+				} else {
+					zone.innerHTML = '<input id="artist" placeholder="Artiste" autocomplete="off" autocapitalize="words" disabled>' +
+						(m.artistOnly ? '' : '<input id="title" placeholder="Titre" autocomplete="off" disabled>') +
+						'<button id="sendGuess" disabled>Envoyer</button>';
+					$('sendGuess').onclick = sendGuess;
+					[].forEach.call(zone.querySelectorAll('input'), function (input) {
+						input.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendGuess(); });
+					});
+				}
+			}
+
+			function enable(locked, answered) {
+				if (!round) return;
+				vibrate(25);
+				$('playTitle').textContent = round.mode === 'buzzer' ? 'Buzz dès que tu sais !' : round.mode === 'qcm' ? 'Quel est ce morceau ?' : 'Artiste ? Titre ?';
+				if (round.mode === 'buzzer') {
+					round.locked = !!locked;
+					$('buzzBtn').disabled = !!locked;
+					$('playHelp').textContent = locked ? 'Tu es bloqué pour ce morceau.' : 'Le premier qui buzze répond à voix haute.';
+				} else if (round.mode === 'qcm') {
+					[].forEach.call(document.querySelectorAll('.answer'), function (b) { b.disabled = !!answered; });
+					$('playHelp').textContent = answered ? 'Réponse envoyée.' : 'Plus tu réponds vite, plus tu marques.';
+				} else {
+					[].forEach.call(document.querySelectorAll('#playZone input'), function (i) { i.disabled = false; });
+					$('sendGuess').disabled = false;
+					$('playHelp').textContent = 'Tu peux réessayer autant que tu veux.';
+				}
+			}
+
+			function onBuzzed(m) {
+				if (!round || round.mode !== 'buzzer') return;
+				$('buzzBtn').disabled = true;
+				if (m.me) {
+					$('playTitle').textContent = 'À toi !';
+					$('playHelp').textContent = 'Donne ta réponse à voix haute.';
+					vibrate([60, 40, 60]);
+				} else {
+					$('playTitle').textContent = escapeHtml(m.by) + ' a buzzé';
+					$('playHelp').textContent = 'Si c\'est faux, tu pourras buzzer à nouveau.';
+				}
+			}
+
+			$('playZone').addEventListener('click', function (e) {
+				var b = e.target.closest ? e.target.closest('.answer') : null;
+				if (!b || b.disabled) return;
+				chosen = +b.getAttribute('data-i');
+				sendTv({ t: 'qcm', i: chosen });
+				[].forEach.call(document.querySelectorAll('.answer'), function (x) { x.disabled = true; });
+				b.className = 'answer is-chosen';
+				vibrate(20);
+			});
+
+			function sendGuess() {
+				var artist = $('artist') ? $('artist').value : '';
+				var title = $('title') ? $('title').value : '';
+				if (!artist.trim() && !title.trim()) return;
+				sendTv({ t: 'guess', artist: artist, title: title });
+			}
+
+			function onFeedback(m) {
+				var a = $('artist'), t = $('title');
+				if (a && m.artist) { a.className = 'is-found'; a.disabled = true; }
+				if (t && m.title) { t.className = 'is-found'; t.disabled = true; }
+				if (m.complete) {
+					$('playTitle').textContent = 'Trouvé !';
+					$('playHelp').textContent = 'Bravo. Attends la révélation…';
+					$('sendGuess').disabled = true;
+					vibrate([40, 30, 40]);
+				} else {
+					$('playHelp').textContent = (m.artist ? 'Artiste ✓' : 'Artiste ✗') + (round.artistOnly ? '' : ' · ' + (m.title ? 'Titre ✓' : 'Titre ✗'));
+					if (!m.artist && !m.title) vibrate(80);
+				}
+			}
+
+			function onReveal(m) {
+				// Montre la bonne réponse dans le QCM avant de passer à l'écran de résultat
+				if (round && round.mode === 'qcm' && m.correct !== null) {
+					[].forEach.call(document.querySelectorAll('.answer'), function (b, i) {
+						if (i === m.correct) b.className = 'answer is-right';
+						else if (i === m.chosen) b.className = 'answer is-wrong';
+					});
+				}
+				setTimeout(function () {
+					show('result');
+					$('revealBox').innerHTML = (m.cover ? '<img src="' + escapeHtml(m.cover) + '" alt="">' : '') +
+						'<div><div class="t">' + escapeHtml(m.title) + '</div><div class="a">' + escapeHtml(m.artist) + '</div></div>';
+					$('points').textContent = m.points ? '+' + m.points : '0';
+					$('points').className = 'points ' + (m.points ? 'is-plus' : 'is-zero');
+					$('resultHelp').textContent = (m.streak >= 3 ? 'Série de ' + m.streak + ' ! ' : '') + (m.last ? 'Dernière manche : résultats sur la TV.' : 'Prochaine manche bientôt…');
+					setScore(m.score);
+				}, round && round.mode === 'qcm' ? 1400 : 0);
+				vibrate(m.points ? [50, 40, 50] : 120);
+			}
+
+			$('voteOptions').addEventListener('click', function (e) {
+				var i = e.target.getAttribute('data-vote');
+				if (i === null || e.target.disabled) return;
+				sendTv({ t: 'vote', i: +i });
+				[].forEach.call(document.querySelectorAll('[data-vote]'), function (b) { b.disabled = true; });
+				e.target.style.opacity = 1;
+				e.target.style.background = 'var(--c)';
+				e.target.style.color = '#fff';
+			});
+
+			$('joinBtn').onclick = connect;
+			$('retryBtn').onclick = function () { show('join'); connect(); };
+			$('name').addEventListener('keydown', function (e) { if (e.key === 'Enter') connect(); });
+
+			show('join');
+			if (!room) $('joinStatus').textContent = 'Scanne le QR code affiché sur la TV.';
+		})();
+	</script>
+</body>
+
+</html>
