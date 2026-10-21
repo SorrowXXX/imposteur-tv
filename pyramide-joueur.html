@@ -563,7 +563,7 @@
 			// ---------- Recevoir ----------
 			function showGift(msg) {
 				$('giftSheet').innerHTML = '<h1 style="font-size:24px">' + escapeHtml(msg.from) + ' te donne ' + unit(msg.amount) + '</h1>' +
-					'<p class="muted">Il prétend avoir un ' + escapeHtml(msg.rank) + '. Si tu cries « Menteur ! » et qu\'il bluffait, il boit le double. Sinon, c\'est toi.</p>' +
+					'<p class="muted">' + escapeHtml(msg.from) + ' dit avoir un ' + escapeHtml(msg.rank) + '. Si tu cries « Menteur ! » et que c\'est du bluff, ' + escapeHtml(msg.from) + ' boit le double. Sinon, c\'est toi.</p>' +
 					'<button data-answer="0">J\'accepte</button><button class="danger" data-answer="1">Menteur !</button>';
 				$('giftSheet').setAttribute('data-gift', msg.id);
 				$('giftSheet').className = 'sheet is-on';
