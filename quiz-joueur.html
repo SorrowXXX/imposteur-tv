@@ -384,6 +384,63 @@
 			line-height: 1.4;
 		}
 
+		/* Transition */
+		#intro {
+			text-align: center;
+			padding-top: 18vh;
+		}
+
+		.intro-kicker {
+			font-size: 14px;
+			font-weight: 800;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			color: var(--accent-2);
+		}
+
+		.intro-title {
+			margin-top: 10px;
+			font-size: 40px;
+			font-weight: 900;
+			letter-spacing: -1px;
+			animation: pop 600ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+		}
+
+		.intro-num {
+			margin-top: 34px;
+			font-size: 96px;
+			font-weight: 900;
+			color: var(--c);
+			animation: pop 500ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+		}
+
+		@keyframes pop {
+			0% { opacity: 0; transform: scale(0.5); }
+			100% { opacity: 1; transform: none; }
+		}
+
+		.levels {
+			display: flex;
+			flex-wrap: wrap;
+			margin: 10px -4px 0;
+		}
+
+		.levels button {
+			width: auto;
+			flex: 1 1 40%;
+			margin: 6px 4px 0;
+			padding: 11px 8px;
+			border-radius: 12px;
+			background: rgba(255, 255, 255, 0.1);
+			color: var(--text);
+			font-size: 15px;
+		}
+
+		.levels button.is-on {
+			background: var(--text);
+			color: #000;
+		}
+
 		.cells div {
 			display: flex;
 			align-items: center;
@@ -433,11 +490,20 @@
 		<div class="list" id="players"></div>
 		<div class="host-box" id="hostBox" style="display:none">
 			<h2>👑 Tu peux lancer la partie</h2>
+			<p class="muted" style="margin-top:6px;font-size:14px">Difficulté du quiz</p>
+			<div class="levels" id="levels"></div>
 			<button data-start="quiz:10">Quiz · 10 questions</button>
 			<button data-start="quiz:20" class="ghost">Quiz long · 20 questions</button>
 			<button data-start="bac:3">Petit Bac · 3 manches</button>
 			<button data-start="bac:5" class="ghost">Petit Bac long · 5 manches</button>
 		</div>
+	</section>
+
+	<section id="intro">
+		<div class="intro-kicker" id="inKicker"></div>
+		<div class="intro-title" id="inTitle"></div>
+		<p class="muted" id="inSub"></p>
+		<div class="intro-num" id="inNum"></div>
 	</section>
 
 	<section id="quiz">
@@ -525,6 +591,7 @@
 			var bac = null;
 			var countdown = null;
 			var sendTimer = null;
+			var level = null;
 
 			function $(id) { return document.getElementById(id); }
 
@@ -539,7 +606,7 @@
 			}
 
 			function show(id) {
-				['join', 'wait', 'quiz', 'quizResult', 'bac', 'review', 'bacScores', 'final', 'refused'].forEach(function (s) {
+				['join', 'wait', 'intro', 'quiz', 'quizResult', 'bac', 'review', 'bacScores', 'final', 'refused'].forEach(function (s) {
 					$(s).className = s === id ? 'is-on' : '';
 				});
 				window.scrollTo(0, 0);
@@ -641,12 +708,19 @@
 						break;
 					case 'lobby':
 						setHost(m.host);
+						level = m.level;
+						$('levels').innerHTML = (m.levels || []).map(function (l) {
+							return '<button data-level="' + l.id + '"' + (l.id === m.level ? ' class="is-on"' : '') + '>' + escapeHtml(l.short) + '</button>';
+						}).join('');
 						setScore(0);
 						show('wait');
 						$('players').innerHTML = m.players.map(function (p) {
 							return '<div' + (p.online ? '' : ' style="opacity:0.45"') + '><span class="dot" style="background:' + p.color + '"></span>' +
 								escapeHtml(p.name) + (p.host ? ' 👑' : '') + '</div>';
 						}).join('');
+						break;
+					case 'intro':
+						onIntro(m);
 						break;
 					case 'quizQ':
 						onQuestion(m);
@@ -683,12 +757,38 @@
 				}
 			}
 
+			// ---------- Transition ----------
+			function onIntro(m) {
+				clearInterval(countdown);
+				show('intro');
+				$('inKicker').textContent = m.kicker;
+				$('inTitle').textContent = m.title;
+				$('inSub').textContent = m.sub;
+				var end = Date.now() + m.left;
+				var lastShown = null;
+				function draw() {
+					var s = Math.max(1, Math.ceil((end - Date.now()) / 1000));
+					if (s !== lastShown) {
+						lastShown = s;
+						// Recrée le chiffre pour rejouer l'animation
+						var el = $('inNum');
+						var copy = el.cloneNode(false);
+						copy.textContent = s;
+						el.parentNode.replaceChild(copy, el);
+						vibrate(15);
+					}
+					if (Date.now() >= end) clearInterval(countdown);
+				}
+				draw();
+				countdown = setInterval(draw, 100);
+			}
+
 			// ---------- Quiz ----------
 			function onQuestion(m) {
 				quiz = m;
 				show('quiz');
 				$('qInfo').textContent = 'Question ' + m.n + ' / ' + m.total;
-				$('qCat').textContent = m.cat;
+				$('qCat').textContent = m.cat + (m.level ? ' · ' + m.level : '');
 				$('qText').textContent = m.q;
 				$('qOptions').innerHTML = m.options.map(function (o, i) {
 					var cls = 'answer' + (m.answered === i ? ' is-chosen' : '');
@@ -722,6 +822,8 @@
 					});
 				}
 				setTimeout(function () {
+					// La transition vers la question suivante a pu commencer entre-temps
+					if ($('intro').className === 'is-on') return;
 					show('quizResult');
 					$('qrTitle').textContent = m.chosen === null ? 'Pas de réponse… C\'était' : m.points ? 'Bonne réponse !' : 'Raté… C\'était';
 					$('qrAnswer').textContent = m.answer;
@@ -876,6 +978,12 @@
 					var parts = b.getAttribute('data-start').split(':');
 					sendTv({ t: 'start', mode: parts[0], count: +parts[1] });
 				};
+			});
+			$('levels').addEventListener('click', function (e) {
+				var b = e.target.closest ? e.target.closest('[data-level]') : null;
+				if (!b) return;
+				each('#levels button', function (x) { x.className = x === b ? 'is-on' : ''; });
+				sendTv({ t: 'level', level: b.getAttribute('data-level') });
 			});
 			each('[data-next]', function (b) {
 				b.onclick = function () { sendTv({ t: 'next' }); };

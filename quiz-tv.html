@@ -709,6 +709,174 @@
 			margin: 0 0.6vw;
 		}
 
+		/* ---------- Niveau ---------- */
+		.levels {
+			display: flex;
+			align-items: center;
+			margin-top: 1.2vw;
+		}
+
+		.levels .label {
+			margin-right: 1vw;
+			font-size: 1.2vw;
+			font-weight: 700;
+			color: var(--text-secondary);
+		}
+
+		.level {
+			margin-right: 0.7vw;
+			padding: 0.7vw 1.3vw;
+			border-radius: 999px;
+			font-size: 1.15vw;
+		}
+
+		.level.is-selected {
+			background: linear-gradient(90deg, var(--accent), var(--accent-2));
+			color: #fff;
+		}
+
+		.level.is-selected:focus {
+			background: var(--text);
+			color: #000;
+		}
+
+		/* ---------- Transition entre questions et manches ---------- */
+		#intro {
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			text-align: center;
+		}
+
+		.intro-kicker {
+			font-size: 1.6vw;
+			font-weight: 800;
+			letter-spacing: 0.3vw;
+			text-transform: uppercase;
+			color: var(--accent-2);
+			opacity: 0;
+			-webkit-animation: introFade 500ms ease-out 100ms forwards;
+			animation: introFade 500ms ease-out 100ms forwards;
+		}
+
+		.intro-title {
+			margin-top: 1vw;
+			font-size: 8.5vw;
+			font-weight: 900;
+			letter-spacing: -0.3vw;
+			line-height: 1;
+			-webkit-animation: introPop 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+			animation: introPop 700ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+		}
+
+		.intro-letter {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 16vw;
+			height: 16vw;
+			margin: 1.4vw auto 0;
+			border-radius: 3.6vw;
+			background: linear-gradient(135deg, var(--accent), var(--accent-2));
+			font-size: 11vw;
+			font-weight: 900;
+			box-shadow: 0 2vw 6vw rgba(94, 92, 230, 0.5);
+		}
+
+		.intro-letter.is-final {
+			-webkit-animation: introLand 600ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+			animation: introLand 600ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+		}
+
+		@-webkit-keyframes introLand {
+			0% { -webkit-transform: scale(1.35); box-shadow: 0 0 0 1vw rgba(255, 255, 255, 0.6); }
+			100% { -webkit-transform: none; }
+		}
+
+		@keyframes introLand {
+			0% { transform: scale(1.35); box-shadow: 0 0 0 1vw rgba(255, 255, 255, 0.6); }
+			100% { transform: none; }
+		}
+
+		.intro-sub {
+			margin-top: 1.6vw;
+			font-size: 1.9vw;
+			font-weight: 700;
+			color: var(--text-secondary);
+			opacity: 0;
+			-webkit-animation: introFade 500ms ease-out 350ms forwards;
+			animation: introFade 500ms ease-out 350ms forwards;
+		}
+
+		.intro-count {
+			display: flex;
+			justify-content: center;
+			margin-top: 3vw;
+		}
+
+		.intro-count span {
+			position: relative;
+			width: 7vw;
+			height: 0.6vw;
+			margin: 0 0.4vw;
+			border-radius: 999px;
+			background: var(--panel-strong);
+			overflow: hidden;
+		}
+
+		.intro-count span::after {
+			content: "";
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			width: 0;
+			border-radius: 999px;
+			background: linear-gradient(90deg, var(--accent), var(--accent-2));
+			-webkit-animation: introFill 1000ms linear forwards;
+			animation: introFill 1000ms linear forwards;
+		}
+
+		.intro-count span:nth-child(2)::after {
+			-webkit-animation-delay: 1000ms;
+			animation-delay: 1000ms;
+		}
+
+		.intro-count span:nth-child(3)::after {
+			-webkit-animation-delay: 2000ms;
+			animation-delay: 2000ms;
+		}
+
+		@-webkit-keyframes introPop {
+			0% { opacity: 0; -webkit-transform: scale(0.6) translateY(2vw); }
+			100% { opacity: 1; -webkit-transform: none; }
+		}
+
+		@keyframes introPop {
+			0% { opacity: 0; transform: scale(0.6) translateY(2vw); }
+			100% { opacity: 1; transform: none; }
+		}
+
+		@-webkit-keyframes introFade {
+			0% { opacity: 0; -webkit-transform: translateY(1vw); }
+			100% { opacity: 1; -webkit-transform: none; }
+		}
+
+		@keyframes introFade {
+			0% { opacity: 0; transform: translateY(1vw); }
+			100% { opacity: 1; transform: none; }
+		}
+
+		@-webkit-keyframes introFill {
+			0% { width: 0; }
+			100% { width: 100%; }
+		}
+
+		@keyframes introFill {
+			0% { width: 0; }
+			100% { width: 100%; }
+		}
+
 		/* ---------- Bandeau joueurs ---------- */
 		footer {
 			display: flex;
@@ -766,6 +934,7 @@
 			<div class="lobby-col">
 				<h1 id="lobbyTitle">En attente des joueurs…</h1>
 				<p class="muted" id="lobbyHelp" style="margin-top:0.6vw;font-size:1.3vw">Chacun joue sur son téléphone. Le premier arrivé (👑) peut aussi lancer la partie depuis son téléphone.</p>
+				<div class="levels" id="levels"><span class="label">Difficulté du quiz</span></div>
 				<div class="modes">
 					<button class="btn mode" data-start="quiz:10"><b>Quiz</b><small>10 questions · réponds vite pour marquer plus</small></button>
 					<button class="btn mode" data-start="quiz:20"><b>Quiz long</b><small>20 questions</small></button>
@@ -775,6 +944,9 @@
 				<div class="lobby-players" id="lobbyPlayers"></div>
 			</div>
 		</section>
+
+		<!-- Transition avant chaque question ou manche -->
+		<section class="screen" id="intro"></section>
 
 		<!-- Question du quiz -->
 		<section class="screen" id="question">
@@ -844,7 +1016,10 @@
 		(function () {
 			var COLORS = ['#0a84ff', '#ff375f', '#30d158', '#ff9f0a', '#bf5af2', '#64d2ff', '#ffd60a', '#ff6482'];
 			var MAX_PLAYERS = COLORS.length;
-			var QUIZ_TIME = 20;
+			var INTRO_MS = 3000;
+			var level = 'commun';
+			try { level = localStorage.getItem('quizLevel') || level; } catch (e) { }
+			if (!levelInfo(level)) level = 'commun';
 			var BAC_TIME = 120;
 			var STOP_DELAY = 10;
 			var BAC_CAT_COUNT = 6;
@@ -881,8 +1056,33 @@
 				return a;
 			}
 
+			function levelInfo(id) {
+				for (var i = 0; i < QUIZ_LEVELS.length; i++) if (QUIZ_LEVELS[i].id === id) return QUIZ_LEVELS[i];
+				return null;
+			}
+
+			function setLevel(id) {
+				if (!levelInfo(id) || phase !== 'lobby') return;
+				level = id;
+				try { localStorage.setItem('quizLevel', level); } catch (e) { }
+				renderLevels();
+				sendLobby();
+			}
+
+			function renderLevels() {
+				var box = $('levels');
+				var focused = document.activeElement && document.activeElement.getAttribute ? document.activeElement.getAttribute('data-level') : null;
+				box.innerHTML = '<span class="label">Difficulté du quiz</span>' + QUIZ_LEVELS.map(function (l) {
+					return '<button class="btn level' + (l.id === level ? ' is-selected' : '') + '" data-level="' + l.id + '">' + escapeHtml(l.label) + '</button>';
+				}).join('');
+				if (focused) {
+					var again = box.querySelector('[data-level="' + focused + '"]');
+					if (again) again.focus();
+				}
+			}
+
 			function show(id) {
-				['lobby', 'question', 'bac', 'review', 'scores', 'final'].forEach(function (s) {
+				['lobby', 'intro', 'question', 'bac', 'review', 'scores', 'final'].forEach(function (s) {
 					$(s).className = 'screen' + (s === id ? ' is-on' : '');
 				});
 				setTimeout(focusDefault, 30);
@@ -1066,7 +1266,13 @@
 			function onMessage(p, msg) {
 				switch (msg.t) {
 					case 'start':
-						if (p.pid === hostPid && phase === 'lobby') start(msg.mode, msg.count);
+						if (p.pid === hostPid && phase === 'lobby') {
+							if (msg.level) setLevel(msg.level);
+							start(msg.mode, msg.count);
+						}
+						break;
+					case 'level':
+						if (p.pid === hostPid) setLevel(msg.level);
 						break;
 					case 'next':
 						if (p.pid === hostPid) next();
@@ -1089,6 +1295,7 @@
 			// Renvoie l'état courant à un joueur qui (re)arrive
 			function resync(p) {
 				if (phase === 'lobby') return sendLobby();
+				if (phase === 'intro') return send(p, introMsg());
 				if (phase === 'q') return send(p, quizQuestionMsg(p));
 				if (phase === 'qreveal') return send(p, quizRevealMsg(p));
 				if (phase === 'bac' || phase === 'collect') {
@@ -1124,7 +1331,7 @@
 
 			function sendLobby() {
 				var ps = list().map(function (p) { return { name: p.name, color: p.color, online: p.online, host: p.pid === hostPid }; });
-				broadcast(function (p) { return { t: 'lobby', players: ps, host: p.pid === hostPid }; });
+				broadcast(function (p) { return { t: 'lobby', players: ps, host: p.pid === hostPid, level: level, levels: QUIZ_LEVELS }; });
 			}
 
 			// ---------- Déroulement ----------
@@ -1137,15 +1344,16 @@
 					game = { mode: 'bac', n: 0, total: Math.min(Math.max(count || 3, 1), 10), letters: shuffle(BAC_LETTERS.split('')) };
 					nextBacRound();
 				} else {
-					var total = Math.min(Math.max(count || 10, 1), QUIZ_QUESTIONS.length);
-					game = { mode: 'quiz', i: -1, total: total, questions: pickQuestions(total) };
+					var pool = QUIZ_QUESTIONS[level];
+					var total = Math.min(Math.max(count || 10, 1), pool.length);
+					game = { mode: 'quiz', i: -1, total: total, level: levelInfo(level), questions: pickQuestions(pool, total) };
 					nextQuestion();
 				}
 			}
 
 			// Mélange les questions en évitant d'enchaîner deux fois le même thème
-			function pickQuestions(total) {
-				var pool = shuffle(QUIZ_QUESTIONS);
+			function pickQuestions(source, total) {
+				var pool = shuffle(source);
 				var out = [];
 				while (out.length < total && pool.length) {
 					var last = out.length ? out[out.length - 1][0] : null;
@@ -1174,22 +1382,76 @@
 				refreshPlayers();
 			}
 
+			// ---------- Transition de 3 s avant chaque question ou manche ----------
+			function playIntro(intro, done) {
+				clearTimers();
+				phase = 'intro';
+				intro.end = Date.now() + INTRO_MS;
+				game.intro = intro;
+				show('intro');
+				// Le contenu est recréé à chaque fois pour rejouer les animations CSS
+				$('intro').innerHTML = '<div class="intro-kicker">' + escapeHtml(intro.kicker) + '</div><div id="introMain"></div>' +
+					'<div class="intro-sub">' + escapeHtml(intro.sub) + '</div><div class="intro-count"><span></span><span></span><span></span></div>';
+				if (intro.letter) {
+					$('introMain').innerHTML = '<div class="intro-letter" id="introLetter"></div>';
+					var letters = BAC_LETTERS.split('');
+					var started = Date.now();
+					// Les lettres défilent puis s'arrêtent sur la lettre de la manche
+					tick = setInterval(function () {
+						var el = $('introLetter');
+						if (!el) return;
+						if (Date.now() - started >= INTRO_MS - 900) {
+							clearInterval(tick);
+							tick = null;
+							el.textContent = intro.letter;
+							el.className = 'intro-letter is-final';
+							return;
+						}
+						el.textContent = letters[Math.floor(Math.random() * letters.length)];
+					}, 70);
+				} else {
+					$('introMain').innerHTML = '<div class="intro-title">' + escapeHtml(intro.title) + '</div>';
+				}
+				refreshPlayers();
+				broadcast(introMsg());
+				autoNext = setTimeout(done, INTRO_MS);
+			}
+
+			function introMsg() {
+				var i = game.intro;
+				return { t: 'intro', kicker: i.kicker, title: i.letter ? 'Lettre ?' : i.title, sub: i.sub, left: Math.max(0, i.end - Date.now()) };
+			}
+
 			// ---------- Quiz ----------
 			function nextQuestion() {
 				clearTimers();
 				game.i++;
 				if (game.i >= game.total) return finish();
 				var raw = game.questions[game.i];
+				var last = game.i + 1 >= game.total;
+				playIntro({
+					kicker: game.level.label,
+					title: last && game.total > 1 ? 'Dernière question' : 'Question ' + (game.i + 1),
+					sub: (last && game.total > 1 ? '' : 'sur ' + game.total + ' · ') + raw[0]
+				}, startQuestion);
+			}
+
+			function startQuestion() {
+				clearTimers();
+				var raw = game.questions[game.i];
 				var options = shuffle(raw.slice(2));
+				game.time = game.level.time || 20;
 				game.q = { cat: raw[0], text: raw[1], options: options, correct: options.indexOf(raw[2]) };
 				game.answers = {};
 				game.start = Date.now();
-				game.end = game.start + QUIZ_TIME * 1000;
+				game.end = game.start + game.time * 1000;
 				phase = 'q';
 
 				$('qInfo').textContent = 'Question ' + (game.i + 1) + ' / ' + game.total;
-				$('qCat').textContent = game.q.cat;
+				$('qCat').textContent = game.q.cat + ' · ' + game.level.short;
 				$('qText').textContent = game.q.text;
+				// Les questions longues (QPUC) passent en plus petit pour tenir à l'écran
+				$('qText').style.fontSize = game.q.text.length > 110 ? '2.3vw' : game.q.text.length > 80 ? '2.6vw' : '';
 				$('qOptions').innerHTML = options.map(function (o, i) {
 					return '<div class="option"><span class="letter" style="background:' + OPTION_COLORS[i] + '">' + OPTION_LETTERS[i] + '</span>' +
 						'<span>' + escapeHtml(o) + '</span><span class="who"></span></div>';
@@ -1203,12 +1465,12 @@
 
 			function quizQuestionMsg(p) {
 				var a = game.answers[p.pid];
-				return { t: 'quizQ', n: game.i + 1, total: game.total, cat: game.q.cat, q: game.q.text, options: game.q.options, left: secondsLeft(), duration: QUIZ_TIME, answered: a ? a.i : null };
+				return { t: 'quizQ', n: game.i + 1, total: game.total, cat: game.q.cat, level: game.level.short, q: game.q.text, options: game.q.options, left: secondsLeft(), duration: game.time, answered: a ? a.i : null };
 			}
 
 			function quizTick() {
 				var ms = Math.max(0, game.end - Date.now());
-				$('qBar').firstChild.style.width = (ms / (QUIZ_TIME * 1000) * 100) + '%';
+				$('qBar').firstChild.style.width = (ms / (game.time * 1000) * 100) + '%';
 				$('qBar').className = 'timebar' + (ms < 5000 ? ' is-low' : '');
 				if (ms <= 0) revealQuestion();
 			}
@@ -1250,7 +1512,7 @@
 				list().forEach(function (p) {
 					var a = game.answers[p.pid];
 					if (a && a.i === q.correct) {
-						a.points = 500 + Math.round(500 * a.left / (QUIZ_TIME * 1000));
+						a.points = 500 + Math.round(500 * a.left / (game.time * 1000));
 						p.score += a.points;
 						p.streak = (p.streak || 0) + 1;
 						p.best = Math.max(p.best || 0, p.streak);
@@ -1287,6 +1549,16 @@
 				if (!game.letters.length) game.letters = shuffle(BAC_LETTERS.split(''));
 				game.letter = game.letters.pop();
 				game.cats = shuffle(BAC_CATEGORIES).slice(0, BAC_CAT_COUNT);
+				var lastRound = game.n >= game.total && game.total > 1;
+				playIntro({
+					kicker: lastRound ? 'Dernière manche' : 'Manche ' + game.n + ' / ' + game.total,
+					letter: game.letter,
+					sub: 'Petit Bac · ' + game.cats.length + ' catégories'
+				}, startBacRound);
+			}
+
+			function startBacRound() {
+				clearTimers();
 				game.answers = {};
 				game.stopBy = null;
 				game.end = Date.now() + BAC_TIME * 1000;
@@ -1544,7 +1816,10 @@
 
 			function focusDefault() {
 				var items = focusables();
-				if (items.length && items.indexOf(document.activeElement) < 0) items[0].focus();
+				if (!items.length || items.indexOf(document.activeElement) >= 0) return;
+				// À l'accueil, le focus part sur « Quiz » plutôt que sur la difficulté
+				var mode = items.filter(function (b) { return b.className.indexOf('mode') >= 0; })[0];
+				(mode || items[0]).focus();
 			}
 
 			function moveFocus(dx, dy) {
@@ -1593,6 +1868,11 @@
 			$('scNext').onclick = next;
 			$('againBtn').onclick = backToLobby;
 
+			$('levels').addEventListener('click', function (e) {
+				var b = e.target.closest ? e.target.closest('[data-level]') : null;
+				if (b) setLevel(b.getAttribute('data-level'));
+			});
+			renderLevels();
 			show('lobby');
 			refreshPlayers();
 			openRoom();
