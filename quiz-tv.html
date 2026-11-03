@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex">
+	<title>Quiz &amp; Petit Bac · TV</title>
+	<style>
+		:root {
+			--text: #f5f5f7;
+			--text-secondary: #8e8e93;
+			--panel: rgba(255, 255, 255, 0.07);
+			--panel-strong: rgba(255, 255, 255, 0.12);
+			--accent: #5e5ce6;
+			--accent-2: #bf5af2;
+			--good: #30d158;
+			--bad: #ff453a;
+			--warn: #ff9f0a;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		html,
+		body {
+			height: 100%;
+			overflow: hidden;
+			background: #000;
+		}
+
+		body {
+			display: flex;
+			flex-direction: column;
+			color: var(--text);
+			font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+			-webkit-font-smoothing: antialiased;
+			font-size: 1.25vw;
+			padding: 2.2vw 3vw 1.6vw;
+			background: radial-gradient(ellipse at 20% 0%, rgba(94, 92, 230, 0.25), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(191, 90, 242, 0.18), transparent 50%), #000;
+		}
+
+		header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.brand {
+			font-size: 1.7vw;
+			font-weight: 800;
+			letter-spacing: -0.03vw;
+		}
+
+		.brand span {
+			background: linear-gradient(90deg, var(--accent), var(--accent-2));
+			-webkit-background-clip: text;
+			background-clip: text;
+			color: transparent;
+		}
+
+		.info {
+			font-size: 1.15vw;
+			color: var(--text-secondary);
+			font-weight: 600;
+		}
+
+		main {
+			position: relative;
+			flex: 1;
+			margin-top: 1.6vw;
+			min-height: 0;
+		}
+
+		.screen {
+			display: none;
+			position: absolute;
+			inset: 0;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+		}
+
+		.screen.is-on {
+			display: flex;
+		}
+
+		h1 {
+			font-size: 3.2vw;
+			font-weight: 800;
+			letter-spacing: -0.08vw;
+			line-height: 1.12;
+		}
+
+		h2 {
+			font-size: 1.9vw;
+			font-weight: 800;
+			letter-spacing: -0.03vw;
+		}
+
+		.muted {
+			color: var(--text-secondary);
+		}
+
+		.btn {
+			display: inline-block;
+			padding: 1vw 2vw;
+			border: 0;
+			border-radius: 1.2vw;
+			background: var(--panel-strong);
+			color: var(--text);
+			font: inherit;
+			font-size: 1.35vw;
+			font-weight: 700;
+			outline: none;
+			transition: transform 120ms ease, box-shadow 120ms ease;
+		}
+
+		.btn:focus {
+			background: var(--text);
+			color: #000;
+			transform: scale(1.04);
+			box-shadow: 0 0 0 0.25vw rgba(255, 255, 255, 0.25), 0 1vw 3vw rgba(94, 92, 230, 0.45);
+		}
+
+		.btn:disabled {
+			opacity: 0.35;
+		}
+
+		/* ---------- Accueil ---------- */
+		#lobby {
+			align-items: stretch;
+		}
+
+		.qr-col {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			width: 34%;
+			padding-right: 3vw;
+		}
+
+		.qr {
+			width: 22vw;
+			height: 22vw;
+			padding: 1vw;
+			border-radius: 1.6vw;
+			background: #fff;
+		}
+
+		.qr svg,
+		.qr img {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+
+		.qr-col p {
+			margin-top: 1.2vw;
+			text-align: center;
+			font-size: 1.3vw;
+			line-height: 1.4;
+		}
+
+		.qr-col .url {
+			margin-top: 0.5vw;
+			font-size: 0.95vw;
+			color: var(--text-secondary);
+			word-break: break-all;
+		}
+
+		.lobby-col {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			min-width: 0;
+		}
+
+		.modes {
+			display: flex;
+			flex-wrap: wrap;
+			margin: 1.4vw -0.6vw 0;
+		}
+
+		.mode {
+			width: calc(50% - 1.2vw);
+			margin: 0.6vw;
+			padding: 1.4vw 1.6vw;
+			text-align: left;
+			border-radius: 1.4vw;
+		}
+
+		.mode b {
+			display: block;
+			font-size: 1.7vw;
+		}
+
+		.mode small {
+			display: block;
+			margin-top: 0.3vw;
+			font-size: 1.05vw;
+			font-weight: 600;
+			opacity: 0.7;
+		}
+
+		.lobby-players {
+			display: flex;
+			flex-wrap: wrap;
+			align-content: flex-start;
+			margin: 1.6vw -0.4vw 0;
+		}
+
+		.chip {
+			display: flex;
+			align-items: center;
+			margin: 0.4vw;
+			padding: 0.7vw 1.2vw;
+			border-radius: 999px;
+			background: var(--panel);
+			font-size: 1.3vw;
+			font-weight: 700;
+		}
+
+		.chip.is-off {
+			opacity: 0.4;
+		}
+
+		.dot {
+			display: inline-block;
+			flex: none;
+			width: 0.9vw;
+			height: 0.9vw;
+			margin-right: 0.7vw;
+			border-radius: 50%;
+		}
+
+		.crown {
+			margin-left: 0.5vw;
+			font-size: 1vw;
+		}
+
+		/* ---------- Question ---------- */
+		#question,
+		#bac,
+		#review,
+		#scores,
+		#final {
+			flex-direction: column;
+		}
+
+		.top-line {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			font-size: 1.3vw;
+			font-weight: 700;
+			color: var(--text-secondary);
+		}
+
+		.pill {
+			display: inline-block;
+			padding: 0.4vw 1vw;
+			border-radius: 999px;
+			background: linear-gradient(90deg, var(--accent), var(--accent-2));
+			color: #fff;
+			font-size: 1.05vw;
+			font-weight: 800;
+		}
+
+		.timebar {
+			height: 0.6vw;
+			margin-top: 1vw;
+			border-radius: 999px;
+			background: var(--panel);
+			overflow: hidden;
+		}
+
+		.timebar div {
+			height: 100%;
+			width: 100%;
+			border-radius: 999px;
+			background: linear-gradient(90deg, var(--accent), var(--accent-2));
+			transition: width 250ms linear;
+		}
+
+		.timebar.is-low div {
+			background: var(--bad);
+		}
+
+		.q-text {
+			margin-top: 2.2vw;
+			font-size: 3vw;
+		}
+
+		.options {
+			display: flex;
+			flex-wrap: wrap;
+			margin: 2vw -0.7vw 0;
+		}
+
+		.option {
+			position: relative;
+			display: flex;
+			align-items: center;
+			width: calc(50% - 1.4vw);
+			min-height: 7vw;
+			margin: 0.7vw;
+			padding: 1.2vw 1.6vw;
+			border-radius: 1.4vw;
+			background: var(--panel);
+			font-size: 1.9vw;
+			font-weight: 700;
+			transition: opacity 300ms ease;
+		}
+
+		.option .letter {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex: none;
+			width: 3vw;
+			height: 3vw;
+			margin-right: 1.2vw;
+			border-radius: 0.8vw;
+			font-size: 1.5vw;
+			font-weight: 900;
+			color: #fff;
+		}
+
+		.option .who {
+			position: absolute;
+			right: 1.2vw;
+			bottom: 0.8vw;
+			display: flex;
+		}
+
+		.option .who .dot {
+			width: 1.1vw;
+			height: 1.1vw;
+			margin: 0 0 0 0.35vw;
+			box-shadow: 0 0 0 0.15vw #000;
+		}
+
+		.option.is-right {
+			background: rgba(48, 209, 88, 0.28);
+			box-shadow: inset 0 0 0 0.25vw var(--good);
+		}
+
+		.option.is-dim > span:not(.who) {
+			opacity: 0.3;
+		}
+
+		.option.is-dim {
+			background: rgba(255, 255, 255, 0.04);
+		}
+
+		.answered-row {
+			display: flex;
+			flex-wrap: wrap;
+			margin-top: auto;
+			padding-top: 1vw;
+		}
+
+		.answered-row .chip {
+			font-size: 1.1vw;
+		}
+
+		.answered-row .chip.is-done {
+			background: rgba(255, 255, 255, 0.18);
+		}
+
+		.answered-row .chip .gain {
+			margin-left: 0.6vw;
+			color: var(--good);
+		}
+
+		/* ---------- Petit Bac ---------- */
+		.bac-head {
+			display: flex;
+			align-items: center;
+			margin-top: 1.4vw;
+		}
+
+		.big-letter {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex: none;
+			width: 10vw;
+			height: 10vw;
+			margin-right: 2.4vw;
+			border-radius: 2.4vw;
+			background: linear-gradient(135deg, var(--accent), var(--accent-2));
+			font-size: 6.6vw;
+			font-weight: 900;
+			box-shadow: 0 1.5vw 4vw rgba(94, 92, 230, 0.45);
+		}
+
+		.countdown {
+			margin-left: auto;
+			font-size: 5vw;
+			font-weight: 900;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.countdown.is-low {
+			color: var(--bad);
+		}
+
+		.cats {
+			display: flex;
+			flex-wrap: wrap;
+			margin: 1.6vw -0.5vw 0;
+		}
+
+		.cats div {
+			margin: 0.5vw;
+			padding: 0.9vw 1.4vw;
+			border-radius: 1vw;
+			background: var(--panel);
+			font-size: 1.6vw;
+			font-weight: 700;
+		}
+
+		.progress-list {
+			display: flex;
+			flex-wrap: wrap;
+			margin: 2vw -0.5vw 0;
+		}
+
+		.progress {
+			width: calc(25% - 1vw);
+			margin: 0.5vw;
+			padding: 1vw 1.2vw;
+			border-radius: 1.2vw;
+			background: var(--panel);
+		}
+
+		.progress .name {
+			display: flex;
+			align-items: center;
+			font-size: 1.3vw;
+			font-weight: 700;
+		}
+
+		.progress .bar {
+			display: flex;
+			margin-top: 0.8vw;
+		}
+
+		.progress .bar span {
+			flex: 1;
+			height: 0.6vw;
+			margin-right: 0.3vw;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.12);
+		}
+
+		.progress .bar span.is-on {
+			background: var(--c, var(--good));
+		}
+
+		.stop-banner {
+			margin-top: 1.6vw;
+			padding: 1.2vw 1.6vw;
+			border-radius: 1.2vw;
+			background: rgba(255, 69, 58, 0.18);
+			color: #ff6961;
+			font-size: 1.8vw;
+			font-weight: 800;
+			display: none;
+		}
+
+		.stop-banner.is-on {
+			display: block;
+		}
+
+		/* ---------- Validation ---------- */
+		.review-grid {
+			display: flex;
+			flex-wrap: wrap;
+			align-content: flex-start;
+			margin: 1.8vw -0.6vw 0;
+		}
+
+		.entry {
+			width: calc(33.333% - 1.2vw);
+			margin: 0.6vw;
+			padding: 1.2vw 1.4vw;
+			border-radius: 1.3vw;
+			background: var(--panel);
+		}
+
+		.entry .name {
+			display: flex;
+			align-items: center;
+			font-size: 1.1vw;
+			font-weight: 700;
+			color: var(--text-secondary);
+		}
+
+		.entry .ans {
+			margin-top: 0.5vw;
+			font-size: 2.1vw;
+			font-weight: 800;
+			word-break: break-word;
+		}
+
+		.entry .state {
+			margin-top: 0.5vw;
+			font-size: 1.05vw;
+			font-weight: 700;
+		}
+
+		.entry.is-ok .state {
+			color: var(--good);
+		}
+
+		.entry.is-ko {
+			opacity: 0.55;
+		}
+
+		.entry.is-ko .ans {
+			text-decoration: line-through;
+		}
+
+		.entry.is-ko .state {
+			color: var(--bad);
+		}
+
+		.entry.is-dup .state {
+			color: var(--warn);
+		}
+
+		.foot {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-top: auto;
+			padding-top: 1.2vw;
+			font-size: 1.2vw;
+			color: var(--text-secondary);
+		}
+
+		/* ---------- Scores ---------- */
+		table {
+			width: 100%;
+			margin-top: 1.6vw;
+			border-collapse: separate;
+			border-spacing: 0 0.5vw;
+			font-size: 1.35vw;
+		}
+
+		th {
+			padding: 0 1vw;
+			text-align: center;
+			font-size: 1vw;
+			font-weight: 700;
+			color: var(--text-secondary);
+		}
+
+		th:first-child,
+		td:first-child {
+			text-align: left;
+		}
+
+		td {
+			padding: 0.9vw 1vw;
+			background: var(--panel);
+			text-align: center;
+			font-weight: 700;
+		}
+
+		td:first-child {
+			border-radius: 1vw 0 0 1vw;
+		}
+
+		td:last-child {
+			border-radius: 0 1vw 1vw 0;
+		}
+
+		td .sub {
+			display: block;
+			font-size: 0.9vw;
+			font-weight: 600;
+			color: var(--text-secondary);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			max-width: 10vw;
+			margin: 0 auto;
+		}
+
+		td.p0 {
+			color: var(--text-secondary);
+		}
+
+		td.p15 {
+			color: #64d2ff;
+		}
+
+		td.p10 {
+			color: var(--good);
+		}
+
+		td.p5 {
+			color: var(--warn);
+		}
+
+		.total {
+			font-size: 1.7vw;
+			font-weight: 900;
+		}
+
+		.ranking {
+			margin-top: 1.6vw;
+		}
+
+		.rank-row {
+			display: flex;
+			align-items: center;
+			margin-top: 0.7vw;
+			padding: 1vw 1.5vw;
+			border-radius: 1.2vw;
+			background: var(--panel);
+			font-size: 1.7vw;
+			font-weight: 700;
+		}
+
+		.rank-row .pos {
+			width: 3vw;
+			color: var(--text-secondary);
+			font-weight: 900;
+		}
+
+		.rank-row .plus {
+			margin-left: 1.2vw;
+			color: var(--good);
+			font-size: 1.3vw;
+		}
+
+		.rank-row .pts {
+			margin-left: auto;
+			font-weight: 900;
+		}
+
+		/* ---------- Fin ---------- */
+		#final {
+			align-items: center;
+			text-align: center;
+		}
+
+		.podium {
+			display: flex;
+			align-items: flex-end;
+			justify-content: center;
+			margin-top: 2.5vw;
+		}
+
+		.step {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: flex-start;
+			width: 16vw;
+			margin: 0 0.8vw;
+			padding-top: 1.4vw;
+			border-radius: 1.6vw 1.6vw 0 0;
+			background: var(--panel);
+		}
+
+		.step .medal {
+			font-size: 3.4vw;
+		}
+
+		.step .nm {
+			margin-top: 0.5vw;
+			font-size: 1.8vw;
+			font-weight: 800;
+			max-width: 14vw;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.step .sc {
+			margin-top: 0.3vw;
+			font-size: 1.3vw;
+			color: var(--text-secondary);
+			font-weight: 700;
+		}
+
+		.others {
+			margin-top: 1.4vw;
+			font-size: 1.3vw;
+			color: var(--text-secondary);
+		}
+
+		.final-actions {
+			margin-top: 2vw;
+		}
+
+		.final-actions .btn {
+			margin: 0 0.6vw;
+		}
+
+		/* ---------- Bandeau joueurs ---------- */
+		footer {
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			margin-top: 1vw;
+			min-height: 3.4vw;
+		}
+
+		footer .chip {
+			font-size: 1.1vw;
+			padding: 0.55vw 1vw;
+		}
+
+		footer .chip b {
+			margin-left: 0.7vw;
+		}
+
+		.toast {
+			position: fixed;
+			left: 50%;
+			top: 2vw;
+			padding: 0.9vw 1.6vw;
+			border-radius: 999px;
+			background: rgba(28, 28, 30, 0.95);
+			font-size: 1.2vw;
+			font-weight: 700;
+			opacity: 0;
+			transform: translate(-50%, -1vw);
+			transition: opacity 250ms ease, transform 250ms ease;
+			pointer-events: none;
+		}
+
+		.toast.is-on {
+			opacity: 1;
+			transform: translate(-50%, 0);
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<div class="brand"><span>Quiz</span> &amp; Petit Bac</div>
+		<div class="info" id="info">Préparation…</div>
+	</header>
+
+	<main>
+		<!-- Accueil -->
+		<section class="screen" id="lobby">
+			<div class="qr-col">
+				<div class="qr" id="qr"></div>
+				<p>Scanne avec ton téléphone<br>pour rejoindre la partie</p>
+				<div class="url" id="joinUrl"></div>
+			</div>
+			<div class="lobby-col">
+				<h1 id="lobbyTitle">En attente des joueurs…</h1>
+				<p class="muted" id="lobbyHelp" style="margin-top:0.6vw;font-size:1.3vw">Chacun joue sur son téléphone. Le premier arrivé (👑) peut aussi lancer la partie depuis son téléphone.</p>
+				<div class="modes">
+					<button class="btn mode" data-start="quiz:10"><b>Quiz</b><small>10 questions · réponds vite pour marquer plus</small></button>
+					<button class="btn mode" data-start="quiz:20"><b>Quiz long</b><small>20 questions</small></button>
+					<button class="btn mode" data-start="bac:3"><b>Petit Bac</b><small>3 manches · une lettre, 6 catégories</small></button>
+					<button class="btn mode" data-start="bac:5"><b>Petit Bac long</b><small>5 manches</small></button>
+				</div>
+				<div class="lobby-players" id="lobbyPlayers"></div>
+			</div>
+		</section>
+
+		<!-- Question du quiz -->
+		<section class="screen" id="question">
+			<div class="top-line"><span id="qInfo"></span><span class="pill" id="qCat"></span></div>
+			<div class="timebar" id="qBar"><div></div></div>
+			<h1 class="q-text" id="qText"></h1>
+			<div class="options" id="qOptions"></div>
+			<div class="answered-row" id="qAnswered"></div>
+		</section>
+
+		<!-- Manche de Petit Bac -->
+		<section class="screen" id="bac">
+			<div class="top-line"><span id="bacInfo"></span><span class="pill">Petit Bac</span></div>
+			<div class="bac-head">
+				<div class="big-letter" id="bacLetter"></div>
+				<div>
+					<h1>Un mot par catégorie</h1>
+					<p class="muted" style="margin-top:0.5vw;font-size:1.4vw">Qui commence par cette lettre. Le premier qui a tout rempli peut crier STOP !</p>
+				</div>
+				<div class="countdown" id="bacTime"></div>
+			</div>
+			<div class="cats" id="bacCats"></div>
+			<div class="stop-banner" id="bacStop"></div>
+			<div class="progress-list" id="bacProgress"></div>
+		</section>
+
+		<!-- Validation des réponses -->
+		<section class="screen" id="review">
+			<div class="top-line"><span id="revInfo"></span><span class="pill" id="revLetter"></span></div>
+			<h1 id="revCat" style="margin-top:1.2vw"></h1>
+			<div class="review-grid" id="revGrid"></div>
+			<div class="foot">
+				<span>Sur ton téléphone, refuse les réponses qui ne te semblent pas valables. Refusée si plus de la moitié des autres joueurs votent contre.</span>
+				<button class="btn" id="revNext">Suivant</button>
+			</div>
+		</section>
+
+		<!-- Scores -->
+		<section class="screen" id="scores">
+			<div class="top-line"><span id="scInfo"></span><span class="pill" id="scPill"></span></div>
+			<h1 id="scTitle" style="margin-top:1vw"></h1>
+			<div id="scBody" style="flex:1;min-height:0;overflow:hidden"></div>
+			<div class="foot">
+				<span id="scHelp"></span>
+				<button class="btn" id="scNext">Suivant</button>
+			</div>
+		</section>
+
+		<!-- Fin -->
+		<section class="screen" id="final">
+			<h1 id="finalTitle" style="margin-top:1vw"></h1>
+			<div class="podium" id="podium"></div>
+			<div class="others" id="others"></div>
+			<div class="final-actions">
+				<button class="btn" id="againBtn">Rejouer</button>
+			</div>
+		</section>
+	</main>
+
+	<footer id="strip"></footer>
+	<div class="toast" id="toast"></div>
+
+	<script src="js/peerjs.min.js"></script>
+	<script src="js/qrcode.js"></script>
+	<script src="js/quiz-questions.js"></script>
+	<script>
+		(function () {
+			var COLORS = ['#0a84ff', '#ff375f', '#30d158', '#ff9f0a', '#bf5af2', '#64d2ff', '#ffd60a', '#ff6482'];
+			var MAX_PLAYERS = COLORS.length;
+			var QUIZ_TIME = 20;
+			var BAC_TIME = 120;
+			var STOP_DELAY = 10;
+			var BAC_CAT_COUNT = 6;
+			var REVEAL_DELAY = 7;
+			// Adresse publique de la page joueur, utilisée quand la page TV est ouverte en local (file://)
+			var PUBLIC_BASE = 'https://sorrowxxx.github.io/imposteur-tv/';
+			var OPTION_COLORS = ['#0a84ff', '#ff9f0a', '#30d158', '#ff375f'];
+			var OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+
+			var peer = null;
+			var room = null;
+			var players = {};
+			var order = [];
+			var hostPid = null;
+			var phase = 'lobby';
+			var game = null;
+			var tick = null;
+			var autoNext = null;
+
+			function $(id) { return document.getElementById(id); }
+
+			function escapeHtml(text) {
+				return String(text == null ? '' : text).replace(/[&<>"']/g, function (c) {
+					return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c];
+				});
+			}
+
+			function shuffle(list) {
+				var a = list.slice();
+				for (var i = a.length - 1; i > 0; i--) {
+					var j = Math.floor(Math.random() * (i + 1));
+					var t = a[i]; a[i] = a[j]; a[j] = t;
+				}
+				return a;
+			}
+
+			function show(id) {
+				['lobby', 'question', 'bac', 'review', 'scores', 'final'].forEach(function (s) {
+					$(s).className = 'screen' + (s === id ? ' is-on' : '');
+				});
+				setTimeout(focusDefault, 30);
+			}
+
+			function toast(text) {
+				var t = $('toast');
+				t.textContent = text;
+				t.className = 'toast is-on';
+				clearTimeout(toast.timer);
+				toast.timer = setTimeout(function () { t.className = 'toast'; }, 2600);
+			}
+
+			function list() {
+				return order.map(function (pid) { return players[pid]; });
+			}
+
+			function online() {
+				return list().filter(function (p) { return p.online; });
+			}
+
+			function ranked() {
+				return list().slice().sort(function (a, b) { return b.score - a.score; });
+			}
+
+			function rankOf(p) {
+				var r = ranked();
+				for (var i = 0; i < r.length; i++) {
+					if (r[i].score === p.score) return i + 1;
+				}
+				return r.length;
+			}
+
+			function send(p, msg) {
+				if (p && p.conn && p.conn.open) {
+					try { p.conn.send(msg); } catch (e) { }
+				}
+			}
+
+			function broadcast(build) {
+				list().forEach(function (p) {
+					var msg = typeof build === 'function' ? build(p) : build;
+					if (msg) send(p, msg);
+				});
+			}
+
+			function secondsLeft() {
+				return game && game.end ? Math.max(0, Math.ceil((game.end - Date.now()) / 1000)) : 0;
+			}
+
+			function clearTimers() {
+				clearInterval(tick);
+				clearTimeout(autoNext);
+				tick = null;
+				autoNext = null;
+			}
+
+			// ---------- Connexion PeerJS ----------
+			function openRoom() {
+				room = 'quiz-' + Math.random().toString(36).slice(2, 8);
+				peer = new Peer(room);
+				peer.on('open', function () {
+					$('info').textContent = 'Salle ' + room.slice(5).toUpperCase();
+					drawQr();
+				});
+				peer.on('connection', onConnection);
+				peer.on('disconnected', function () {
+					try { peer.reconnect(); } catch (e) { }
+				});
+				peer.on('error', function (err) {
+					if (err.type === 'unavailable-id') {
+						peer.destroy();
+						openRoom();
+					} else if (err.type === 'network' || err.type === 'server-error' || err.type === 'socket-error') {
+						$('info').textContent = 'Connexion au serveur perdue, nouvel essai…';
+						setTimeout(function () { if (peer.disconnected && !peer.destroyed) peer.reconnect(); }, 3000);
+					}
+				});
+			}
+
+			function playerUrl() {
+				var override = (location.search.match(/[?&]base=([^&]+)/) || [])[1];
+				var base = override ? decodeURIComponent(override) :
+					/^https?:$/.test(location.protocol) ? location.href.replace(/[#?].*$/, '').replace(/[^\/]*$/, '') : PUBLIC_BASE;
+				return base + 'quiz-joueur.html#r=' + room;
+			}
+
+			function drawQr() {
+				var url = playerUrl();
+				var qr = qrcode(0, 'M');
+				qr.addData(url);
+				qr.make();
+				$('qr').innerHTML = qr.createSvgTag({ cellSize: 6, margin: 0, scalable: true });
+				$('joinUrl').textContent = url;
+			}
+
+			function onConnection(conn) {
+				conn.on('data', function (msg) {
+					if (!msg || typeof msg !== 'object') return;
+					if (msg.t === 'hello') return onHello(conn, msg);
+					var p = conn.player;
+					if (p && players[p.pid] === p) onMessage(p, msg);
+				});
+				conn.on('close', function () {
+					var p = conn.player;
+					if (p && p.conn === conn) {
+						p.online = false;
+						p.conn = null;
+						pickHost();
+						refreshPlayers();
+						checkAllAnswered();
+					}
+				});
+			}
+
+			function cleanName(name) {
+				name = String(name || '').replace(/\s+/g, ' ').trim().slice(0, 14);
+				return name || 'Joueur';
+			}
+
+			function onHello(conn, msg) {
+				var pid = String(msg.pid || '').slice(0, 20);
+				if (!pid) return;
+				var p = players[pid];
+				if (!p) {
+					if (order.length >= MAX_PLAYERS) {
+						// Fait de la place en retirant un joueur hors ligne
+						var gone = list().filter(function (x) { return !x.online; })[0];
+						if (!gone) {
+							conn.send({ t: 'refused', reason: 'La partie est complète (' + MAX_PLAYERS + ' joueurs maximum).' });
+							return;
+						}
+						removePlayer(gone.pid);
+					}
+					p = { pid: pid, score: 0, color: freeColor() };
+					players[pid] = p;
+					order.push(pid);
+				} else if (p.conn && p.conn !== conn) {
+					try { p.conn.close(); } catch (e) { }
+				}
+				p.name = uniqueName(cleanName(msg.name), pid);
+				p.conn = conn;
+				p.online = true;
+				conn.player = p;
+				pickHost();
+				send(p, { t: 'welcome', color: p.color, name: p.name });
+				refreshPlayers();
+				resync(p);
+			}
+
+			function removePlayer(pid) {
+				delete players[pid];
+				order = order.filter(function (x) { return x !== pid; });
+			}
+
+			function freeColor() {
+				var used = list().map(function (p) { return p.color; });
+				for (var i = 0; i < COLORS.length; i++) {
+					if (used.indexOf(COLORS[i]) < 0) return COLORS[i];
+				}
+				return COLORS[0];
+			}
+
+			function uniqueName(name, pid) {
+				var base = name, n = 2;
+				function taken(x) {
+					return list().some(function (p) { return p.pid !== pid && p.name && p.name.toLowerCase() === x.toLowerCase(); });
+				}
+				while (taken(name)) name = base.slice(0, 12) + ' ' + n++;
+				return name;
+			}
+
+			function pickHost() {
+				var host = players[hostPid];
+				if (host && host.online) return;
+				var first = online()[0];
+				hostPid = first ? first.pid : null;
+			}
+
+			// ---------- Messages des téléphones ----------
+			function onMessage(p, msg) {
+				switch (msg.t) {
+					case 'start':
+						if (p.pid === hostPid && phase === 'lobby') start(msg.mode, msg.count);
+						break;
+					case 'next':
+						if (p.pid === hostPid) next();
+						break;
+					case 'answer':
+						onQuizAnswer(p, msg.i);
+						break;
+					case 'bac':
+						onBacAnswers(p, msg.a);
+						break;
+					case 'stop':
+						onBacStop(p);
+						break;
+					case 'veto':
+						onVeto(p, msg);
+						break;
+				}
+			}
+
+			// Renvoie l'état courant à un joueur qui (re)arrive
+			function resync(p) {
+				if (phase === 'lobby') return sendLobby();
+				if (phase === 'q') return send(p, quizQuestionMsg(p));
+				if (phase === 'qreveal') return send(p, quizRevealMsg(p));
+				if (phase === 'bac' || phase === 'collect') {
+					send(p, bacRoundMsg(p));
+					if (game.stopBy) send(p, { t: 'bacStop', by: game.stopBy, left: secondsLeft() });
+					return;
+				}
+				if (phase === 'review') return send(p, reviewMsg(p));
+				if (phase === 'bacscores') return send(p, bacScoresMsg(p));
+				if (phase === 'final') return send(p, finalMsg(p));
+			}
+
+			// ---------- Joueurs à l'écran ----------
+			function refreshPlayers() {
+				var html = list().map(function (p) {
+					return '<div class="chip' + (p.online ? '' : ' is-off') + '"><span class="dot" style="background:' + p.color + '"></span>' +
+						escapeHtml(p.name) + (p.pid === hostPid ? '<span class="crown">👑</span>' : '') +
+						(phase === 'lobby' ? '' : '<b>' + p.score + '</b>') + '</div>';
+				}).join('');
+				$('strip').innerHTML = phase === 'lobby' || phase === 'q' || phase === 'qreveal' ? '' : html;
+				$('lobbyPlayers').innerHTML = html;
+				var count = online().length;
+				$('lobbyTitle').textContent = count ? count + ' joueur' + (count > 1 ? 's' : '') + ' prêt' + (count > 1 ? 's' : '') : 'En attente des joueurs…';
+				[].forEach.call(document.querySelectorAll('[data-start]'), function (b) { b.disabled = !count; });
+				if (phase === 'lobby') {
+					sendLobby();
+					if (!document.activeElement || document.activeElement === document.body || document.activeElement.disabled) focusDefault();
+				}
+				if (phase === 'q') renderAnswered();
+				if (phase === 'bac') renderBacProgress();
+				if (phase === 'review') renderReview();
+			}
+
+			function sendLobby() {
+				var ps = list().map(function (p) { return { name: p.name, color: p.color, online: p.online, host: p.pid === hostPid }; });
+				broadcast(function (p) { return { t: 'lobby', players: ps, host: p.pid === hostPid }; });
+			}
+
+			// ---------- Déroulement ----------
+			function start(mode, count) {
+				if (!online().length) return;
+				clearTimers();
+				list().forEach(function (p) { p.score = 0; p.streak = 0; p.best = 0; });
+				count = +count || 0;
+				if (mode === 'bac') {
+					game = { mode: 'bac', n: 0, total: Math.min(Math.max(count || 3, 1), 10), letters: shuffle(BAC_LETTERS.split('')) };
+					nextBacRound();
+				} else {
+					var total = Math.min(Math.max(count || 10, 1), QUIZ_QUESTIONS.length);
+					game = { mode: 'quiz', i: -1, total: total, questions: pickQuestions(total) };
+					nextQuestion();
+				}
+			}
+
+			// Mélange les questions en évitant d'enchaîner deux fois le même thème
+			function pickQuestions(total) {
+				var pool = shuffle(QUIZ_QUESTIONS);
+				var out = [];
+				while (out.length < total && pool.length) {
+					var last = out.length ? out[out.length - 1][0] : null;
+					var idx = 0;
+					for (var i = 0; i < pool.length; i++) {
+						if (pool[i][0] !== last) { idx = i; break; }
+					}
+					out.push(pool.splice(idx, 1)[0]);
+				}
+				return out;
+			}
+
+			function next() {
+				if (phase === 'qreveal') nextQuestion();
+				else if (phase === 'review') nextReviewCategory();
+				else if (phase === 'bacscores') nextBacRound();
+				else if (phase === 'final') backToLobby();
+			}
+
+			function backToLobby() {
+				clearTimers();
+				phase = 'lobby';
+				game = null;
+				list().forEach(function (p) { p.score = 0; });
+				show('lobby');
+				refreshPlayers();
+			}
+
+			// ---------- Quiz ----------
+			function nextQuestion() {
+				clearTimers();
+				game.i++;
+				if (game.i >= game.total) return finish();
+				var raw = game.questions[game.i];
+				var options = shuffle(raw.slice(2));
+				game.q = { cat: raw[0], text: raw[1], options: options, correct: options.indexOf(raw[2]) };
+				game.answers = {};
+				game.start = Date.now();
+				game.end = game.start + QUIZ_TIME * 1000;
+				phase = 'q';
+
+				$('qInfo').textContent = 'Question ' + (game.i + 1) + ' / ' + game.total;
+				$('qCat').textContent = game.q.cat;
+				$('qText').textContent = game.q.text;
+				$('qOptions').innerHTML = options.map(function (o, i) {
+					return '<div class="option"><span class="letter" style="background:' + OPTION_COLORS[i] + '">' + OPTION_LETTERS[i] + '</span>' +
+						'<span>' + escapeHtml(o) + '</span><span class="who"></span></div>';
+				}).join('');
+				show('question');
+				refreshPlayers();
+				broadcast(quizQuestionMsg);
+				tick = setInterval(quizTick, 250);
+				quizTick();
+			}
+
+			function quizQuestionMsg(p) {
+				var a = game.answers[p.pid];
+				return { t: 'quizQ', n: game.i + 1, total: game.total, cat: game.q.cat, q: game.q.text, options: game.q.options, left: secondsLeft(), duration: QUIZ_TIME, answered: a ? a.i : null };
+			}
+
+			function quizTick() {
+				var ms = Math.max(0, game.end - Date.now());
+				$('qBar').firstChild.style.width = (ms / (QUIZ_TIME * 1000) * 100) + '%';
+				$('qBar').className = 'timebar' + (ms < 5000 ? ' is-low' : '');
+				if (ms <= 0) revealQuestion();
+			}
+
+			function onQuizAnswer(p, i) {
+				if (phase !== 'q' || game.answers[p.pid]) return;
+				i = +i;
+				if (!(i >= 0 && i < 4)) return;
+				game.answers[p.pid] = { i: i, left: Math.max(0, game.end - Date.now()) };
+				send(p, { t: 'quizAnswered', i: i });
+				renderAnswered();
+				checkAllAnswered();
+			}
+
+			function checkAllAnswered() {
+				if (phase !== 'q') return;
+				var waiting = online().filter(function (p) { return !game.answers[p.pid]; });
+				if (!waiting.length && online().length) {
+					// Petite pause pour que le dernier voie sa réponse partir
+					clearInterval(tick);
+					tick = null;
+					setTimeout(function () { if (phase === 'q') revealQuestion(); }, 600);
+				}
+			}
+
+			function renderAnswered() {
+				$('qAnswered').innerHTML = list().map(function (p) {
+					var a = game.answers[p.pid];
+					var gain = phase === 'qreveal' ? (a && a.points ? '<span class="gain">+' + a.points + '</span>' : '') + '<b style="margin-left:0.7vw">' + p.score + '</b>' : '';
+					return '<div class="chip' + (a ? ' is-done' : '') + (p.online ? '' : ' is-off') + '"><span class="dot" style="background:' + p.color + '"></span>' +
+						escapeHtml(p.name) + (p.pid === hostPid ? '<span class="crown">👑</span>' : '') + (phase === 'q' ? (a ? ' ✓' : ' …') : '') + gain + '</div>';
+				}).join('');
+			}
+
+			function revealQuestion() {
+				clearTimers();
+				phase = 'qreveal';
+				var q = game.q;
+				list().forEach(function (p) {
+					var a = game.answers[p.pid];
+					if (a && a.i === q.correct) {
+						a.points = 500 + Math.round(500 * a.left / (QUIZ_TIME * 1000));
+						p.score += a.points;
+						p.streak = (p.streak || 0) + 1;
+						p.best = Math.max(p.best || 0, p.streak);
+					} else {
+						if (a) a.points = 0;
+						p.streak = 0;
+					}
+				});
+				$('qBar').firstChild.style.width = '0%';
+				var opts = $('qOptions').children;
+				for (var i = 0; i < opts.length; i++) {
+					opts[i].className = 'option' + (i === q.correct ? ' is-right' : ' is-dim');
+					opts[i].lastChild.innerHTML = list().filter(function (p) {
+						return game.answers[p.pid] && game.answers[p.pid].i === i;
+					}).map(function (p) { return '<span class="dot" style="background:' + p.color + '"></span>'; }).join('');
+				}
+				refreshPlayers();
+				renderAnswered();
+				broadcast(quizRevealMsg);
+				autoNext = setTimeout(nextQuestion, REVEAL_DELAY * 1000);
+				focusDefault();
+			}
+
+			function quizRevealMsg(p) {
+				var a = game.answers[p.pid];
+				return { t: 'quizReveal', correct: game.q.correct, answer: game.q.options[game.q.correct], chosen: a ? a.i : null, points: a ? a.points || 0 : 0, score: p.score, rank: rankOf(p), streak: p.streak || 0, last: game.i + 1 >= game.total };
+			}
+
+			// ---------- Petit Bac ----------
+			function nextBacRound() {
+				clearTimers();
+				game.n++;
+				if (game.n > game.total) return finish();
+				if (!game.letters.length) game.letters = shuffle(BAC_LETTERS.split(''));
+				game.letter = game.letters.pop();
+				game.cats = shuffle(BAC_CATEGORIES).slice(0, BAC_CAT_COUNT);
+				game.answers = {};
+				game.stopBy = null;
+				game.end = Date.now() + BAC_TIME * 1000;
+				phase = 'bac';
+
+				$('bacInfo').textContent = 'Manche ' + game.n + ' / ' + game.total;
+				$('bacLetter').textContent = game.letter;
+				$('bacCats').innerHTML = game.cats.map(function (c) { return '<div>' + escapeHtml(c) + '</div>'; }).join('');
+				$('bacStop').className = 'stop-banner';
+				show('bac');
+				refreshPlayers();
+				broadcast(bacRoundMsg);
+				tick = setInterval(bacTick, 250);
+				bacTick();
+			}
+
+			function bacRoundMsg(p) {
+				return { t: 'bacRound', n: game.n, total: game.total, letter: game.letter, cats: game.cats, left: secondsLeft(), answers: game.answers[p.pid] || [], closed: phase !== 'bac' };
+			}
+
+			function bacTick() {
+				var left = secondsLeft();
+				$('bacTime').textContent = Math.floor(left / 60) + ':' + ('0' + left % 60).slice(-2);
+				$('bacTime').className = 'countdown' + (left <= 10 ? ' is-low' : '');
+				if (left <= 0) closeBacRound();
+			}
+
+			function onBacAnswers(p, answers) {
+				if (phase !== 'bac' && phase !== 'collect') return;
+				if (!answers || !answers.length) return;
+				game.answers[p.pid] = game.cats.map(function (c, i) {
+					return String(answers[i] || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+				});
+				renderBacProgress();
+			}
+
+			function filledCount(pid) {
+				return (game.answers[pid] || []).filter(function (a) { return a; }).length;
+			}
+
+			function renderBacProgress() {
+				$('bacProgress').innerHTML = list().map(function (p) {
+					var filled = filledCount(p.pid);
+					var bars = '';
+					for (var i = 0; i < game.cats.length; i++) bars += '<span' + (i < filled ? ' class="is-on"' : '') + '></span>';
+					return '<div class="progress" style="--c:' + p.color + (p.online ? '' : ';opacity:0.4') + '"><div class="name"><span class="dot" style="background:' + p.color + '"></span>' +
+						escapeHtml(p.name) + '</div><div class="bar">' + bars + '</div></div>';
+				}).join('');
+			}
+
+			function onBacStop(p) {
+				if (phase !== 'bac' || game.stopBy) return;
+				if (filledCount(p.pid) < game.cats.length) return;
+				game.stopBy = p.name;
+				game.end = Math.min(game.end, Date.now() + STOP_DELAY * 1000);
+				$('bacStop').textContent = '✋ ' + p.name + ' a dit STOP ! Encore ' + STOP_DELAY + ' secondes…';
+				$('bacStop').className = 'stop-banner is-on';
+				broadcast({ t: 'bacStop', by: p.name, left: secondsLeft() });
+			}
+
+			function closeBacRound() {
+				clearTimers();
+				phase = 'collect';
+				broadcast({ t: 'bacEnd' });
+				$('bacTime').textContent = '0:00';
+				$('bacStop').textContent = 'Temps écoulé ! On ramasse les copies…';
+				$('bacStop').className = 'stop-banner is-on';
+				// Laisse le temps aux téléphones d'envoyer leurs dernières réponses
+				autoNext = setTimeout(startReview, 1500);
+			}
+
+			// Mot sans accents ni ponctuation, en minuscules
+			function simplify(text) {
+				var s = String(text || '').toLowerCase();
+				if (s.normalize) s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+				return s.replace(/œ/g, 'oe').replace(/æ/g, 'ae');
+			}
+
+			// Retire l'article : « Le Havre » compte pour H comme pour L
+			function withoutArticle(s) {
+				return s.replace(/^\s*(l'|l’|d'|d’|le |la |les |un |une |des |du |de la |de l'|de l’)/, '');
+			}
+
+			function key(text) {
+				return withoutArticle(simplify(text)).replace(/[^a-z0-9]/g, '');
+			}
+
+			function startsWithLetter(text, letter) {
+				var s = simplify(text);
+				var l = letter.toLowerCase();
+				var a = s.replace(/[^a-z0-9]/g, ''), b = key(text);
+				return (a.charAt(0) === l || b.charAt(0) === l) && a.length >= 2;
+			}
+
+			function startReview() {
+				clearTimers();
+				game.cat = 0;
+				game.vetoes = game.cats.map(function () { return {}; });
+				phase = 'review';
+				$('revLetter').textContent = 'Lettre ' + game.letter;
+				nextReviewCategory(true);
+			}
+
+			function nextReviewCategory(first) {
+				if (!first) game.cat++;
+				if (game.cat >= game.cats.length) return scoreBacRound();
+				$('revInfo').textContent = 'Manche ' + game.n + ' / ' + game.total + ' · catégorie ' + (game.cat + 1) + ' / ' + game.cats.length;
+				$('revCat').textContent = game.cats[game.cat];
+				$('revNext').textContent = game.cat + 1 >= game.cats.length ? 'Voir les points' : 'Catégorie suivante';
+				show('review');
+				renderReview();
+				broadcast(reviewMsg);
+			}
+
+			// État d'une réponse : 'empty', 'letter' (mauvaise lettre), 'refused', 'ok'
+			function entryState(pid, cat) {
+				var answer = (game.answers[pid] || [])[cat] || '';
+				if (!answer) return { answer: '', state: 'empty', vetoes: 0 };
+				if (!startsWithLetter(answer, game.letter)) return { answer: answer, state: 'letter', vetoes: 0 };
+				var vetoes = game.vetoes[cat][pid] || {};
+				var count = 0, voters = 0;
+				online().forEach(function (v) {
+					if (v.pid === pid) return;
+					voters++;
+					if (vetoes[v.pid]) count++;
+				});
+				return { answer: answer, state: voters && count * 2 > voters ? 'refused' : 'ok', vetoes: count };
+			}
+
+			function renderReview() {
+				var cat = game.cat;
+				var keys = {};
+				list().forEach(function (p) {
+					var e = entryState(p.pid, cat);
+					if (e.state === 'ok') keys[key(e.answer)] = (keys[key(e.answer)] || 0) + 1;
+				});
+				$('revGrid').innerHTML = list().map(function (p) {
+					var e = entryState(p.pid, cat);
+					var cls = 'entry', label;
+					if (e.state === 'empty') { cls += ' is-ko'; label = 'Pas de réponse'; }
+					else if (e.state === 'letter') { cls += ' is-ko'; label = 'Ne commence pas par ' + game.letter; }
+					else if (e.state === 'refused') { cls += ' is-ko'; label = 'Refusée (' + e.vetoes + ' vote' + (e.vetoes > 1 ? 's' : '') + ')'; }
+					else if (keys[key(e.answer)] > 1) { cls += ' is-dup is-ok'; label = 'Même réponse qu\'un autre'; }
+					else { cls += ' is-ok'; label = '✓ Valable' + (e.vetoes ? ' · ' + e.vetoes + ' contre' : ''); }
+					return '<div class="' + cls + '"><div class="name"><span class="dot" style="background:' + p.color + '"></span>' + escapeHtml(p.name) + '</div>' +
+						'<div class="ans">' + (e.answer ? escapeHtml(e.answer) : '—') + '</div><div class="state">' + label + '</div></div>';
+				}).join('');
+			}
+
+			function reviewMsg(p) {
+				var cat = game.cat;
+				var vetoes = game.vetoes[cat];
+				return {
+					t: 'bacReview', cat: cat, count: game.cats.length, name: game.cats[cat], letter: game.letter,
+					entries: list().filter(function (x) { return x.pid !== p.pid; }).map(function (x) {
+						var e = entryState(x.pid, cat);
+						return { id: x.pid, name: x.name, color: x.color, answer: e.answer, state: e.state, mine: !!(vetoes[x.pid] && vetoes[x.pid][p.pid]) };
+					}),
+					own: entryState(p.pid, cat)
+				};
+			}
+
+			function onVeto(p, msg) {
+				if (phase !== 'review' || msg.cat !== game.cat) return;
+				var target = players[msg.target];
+				if (!target || target === p) return;
+				var v = game.vetoes[game.cat];
+				v[target.pid] = v[target.pid] || {};
+				if (msg.on) v[target.pid][p.pid] = true;
+				else delete v[target.pid][p.pid];
+				renderReview();
+				broadcast(reviewMsg);
+			}
+
+			function scoreBacRound() {
+				phase = 'bacscores';
+				var round = {};
+				list().forEach(function (p) { round[p.pid] = { total: 0, cells: [] }; });
+				game.cats.forEach(function (c, cat) {
+					var valid = [];
+					list().forEach(function (p) {
+						var e = entryState(p.pid, cat);
+						if (e.state === 'ok') valid.push({ pid: p.pid, key: key(e.answer) });
+					});
+					list().forEach(function (p) {
+						var e = entryState(p.pid, cat);
+						var pts = 0;
+						if (e.state === 'ok') {
+							var same = valid.filter(function (v) { return v.key === key(e.answer); }).length;
+							pts = valid.length === 1 ? 15 : same > 1 ? 5 : 10;
+						}
+						round[p.pid].cells.push({ answer: e.answer, pts: pts });
+						round[p.pid].total += pts;
+					});
+				});
+				list().forEach(function (p) { p.score += round[p.pid].total; });
+				game.round = round;
+
+				$('scInfo').textContent = 'Manche ' + game.n + ' / ' + game.total;
+				$('scPill').textContent = 'Lettre ' + game.letter;
+				$('scTitle').textContent = 'Points de la manche';
+				$('scHelp').textContent = '15 pts : seul à avoir une réponse valable · 10 pts : réponse unique · 5 pts : même réponse qu\'un autre';
+				$('scNext').textContent = game.n >= game.total ? 'Résultats finaux' : 'Manche suivante';
+				var head = '<tr><th>Joueur</th>' + game.cats.map(function (c) { return '<th>' + escapeHtml(c) + '</th>'; }).join('') + '<th>Manche</th><th>Total</th></tr>';
+				var rows = ranked().map(function (p) {
+					var r = round[p.pid];
+					return '<tr><td><span class="dot" style="background:' + p.color + '"></span>' + escapeHtml(p.name) + '</td>' +
+						r.cells.map(function (cell) {
+							return '<td class="p' + cell.pts + '">' + cell.pts + '<span class="sub">' + escapeHtml(cell.answer || '—') + '</span></td>';
+						}).join('') + '<td class="total">+' + r.total + '</td><td class="total">' + p.score + '</td></tr>';
+				}).join('');
+				$('scBody').innerHTML = '<table>' + head + rows + '</table>';
+				show('scores');
+				refreshPlayers();
+				broadcast(bacScoresMsg);
+			}
+
+			function bacScoresMsg(p) {
+				var r = game.round[p.pid] || { total: 0, cells: [] };
+				return { t: 'bacScores', points: r.total, score: p.score, rank: rankOf(p), total: order.length, cats: game.cats, cells: r.cells, last: game.n >= game.total };
+			}
+
+			// ---------- Fin de partie ----------
+			function finish() {
+				clearTimers();
+				phase = 'final';
+				var r = ranked();
+				var medals = ['🥇', '🥈', '🥉'];
+				var heights = [17, 13, 10];
+				var podiumOrder = [1, 0, 2].filter(function (i) { return r[i]; });
+				$('finalTitle').textContent = r.length ? r[0].name + ' remporte la partie !' : 'Partie terminée';
+				$('podium').innerHTML = podiumOrder.map(function (i) {
+					var p = r[i];
+					return '<div class="step" style="height:' + heights[i] + 'vw;box-shadow:inset 0 0.3vw 0 ' + p.color + '"><div class="medal">' + medals[i] + '</div>' +
+						'<div class="nm">' + escapeHtml(p.name) + '</div><div class="sc">' + p.score + ' pts</div></div>';
+				}).join('');
+				$('others').innerHTML = r.slice(3).map(function (p, i) {
+					return (i + 4) + '. ' + escapeHtml(p.name) + ' · ' + p.score + ' pts';
+				}).join(' &nbsp;·&nbsp; ');
+				show('final');
+				refreshPlayers();
+				broadcast(finalMsg);
+			}
+
+			function finalMsg(p) {
+				return { t: 'final', rank: rankOf(p), total: order.length, score: p.score, best: p.best || 0, mode: game ? game.mode : 'quiz' };
+			}
+
+			// ---------- Télécommande ----------
+			function focusables() {
+				return [].filter.call(document.querySelectorAll('.btn'), function (b) {
+					return !b.disabled && b.offsetParent !== null;
+				});
+			}
+
+			function focusDefault() {
+				var items = focusables();
+				if (items.length && items.indexOf(document.activeElement) < 0) items[0].focus();
+			}
+
+			function moveFocus(dx, dy) {
+				var items = focusables();
+				var cur = document.activeElement;
+				if (items.indexOf(cur) < 0) return focusDefault();
+				var r = cur.getBoundingClientRect();
+				var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+				var best = null, bestScore = Infinity;
+				items.forEach(function (b) {
+					if (b === cur) return;
+					var q = b.getBoundingClientRect();
+					var x = q.left + q.width / 2 - cx, y = q.top + q.height / 2 - cy;
+					var along = x * dx + y * dy;
+					if (along <= 1) return;
+					var across = Math.abs(x * dy - y * dx);
+					var score = along + across * 2;
+					if (score < bestScore) { bestScore = score; best = b; }
+				});
+				if (best) best.focus();
+			}
+
+			document.addEventListener('keydown', function (e) {
+				var k = e.keyCode;
+				if (k === 37) moveFocus(-1, 0);
+				else if (k === 38) moveFocus(0, -1);
+				else if (k === 39) moveFocus(1, 0);
+				else if (k === 40) moveFocus(0, 1);
+				else if (k === 13) {
+					if (document.activeElement && document.activeElement.click && document.activeElement.className.indexOf('btn') >= 0) document.activeElement.click();
+				} else if (k === 461 || k === 27) {
+					// Retour : revient à l'accueil depuis l'écran final
+					if (phase === 'final') backToLobby();
+					else return;
+				} else return;
+				e.preventDefault();
+			});
+
+			[].forEach.call(document.querySelectorAll('[data-start]'), function (b) {
+				b.onclick = function () {
+					var parts = b.getAttribute('data-start').split(':');
+					start(parts[0], +parts[1]);
+				};
+			});
+			$('revNext').onclick = next;
+			$('scNext').onclick = next;
+			$('againBtn').onclick = backToLobby;
+
+			show('lobby');
+			refreshPlayers();
+			openRoom();
+		})();
+	</script>
+</body>
+
+</html>
